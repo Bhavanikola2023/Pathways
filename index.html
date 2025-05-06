@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCC Career Pathway Explorer</title>
+    <style>
+        /* Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+
+        /* Header */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        .title {
+            font-size: 24px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .control-btn {
+            background: rgba(30, 30, 50, 0.7);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(60, 60, 100, 0.8);
+        }
+
+        .reset-btn {
+            background: rgba(30, 30, 50, 0.7);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+
+        .reset-btn:hover {
+            background: rgba(60, 60, 100, 0.8);
+        }
+
+        /* Toggle for legends */
+        .legend-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 30, 50, 0.7);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 14px;
+        }
+
+        .legend-toggle:hover {
+            background: rgba(60, 60, 100, 0.8);
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(10, 10, 30, 0.7);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 9;
+            max-width: 200px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .legend.hidden {
+            opacity: 0;
+            transform: translateX(50px);
+            pointer-events: none;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Canvas and container styles */
+        #graph-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Loading indicator */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            z-index: 100;
+        }
+
+        /* Node styles */
+        .node {
+            transition: opacity 0.3s ease, r 0.3s ease;
+            cursor: pointer;
+        }
+
+        .node:hover {
+            filter: brightness(1.3);
+        }
+
+        .node-label {
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            text-shadow: 0 0 5px #000, 0 0 10px #000;
+        }
+
+        /* Link styles */
+        .link {
+            transition: opacity 0.3s ease, stroke-opacity 0.3s ease;
+        }
+
+        /* Details panel */
+        #details-panel {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(400px);
+            width: 300px;
+            max-height: 70vh;
+            background: rgba(10, 10, 30, 0.8);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 8;
+        }
+
+        #details-panel.active {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        #details-panel h2 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        #details-panel p {
+            margin-bottom: 15px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(100, 100, 150, 0.3);
+            padding-bottom: 15px;
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid rgba(100, 100, 150, 0.5);
+        }
+
+        .career-item {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid rgba(100, 150, 250, 0.5);
+        }
+
+        .action-btn {
+            background: rgba(60, 80, 170, 0.6);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(80, 100, 200, 0.7);
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 18px;
+            }
+            
+            .subtitle {
+                font-size: 12px;
+            }
+            
+            #details-panel {
+                width: 80%;
+                max-width: 300px;
+            }
+            
+            .controls {
+                gap: 5px;
+            }
+            
+            .control-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+        }
+
+        /* Tooltip for node information */
+        #tooltip {
+            position: absolute;
+            padding: 10px;
+            background: rgba(10, 10, 30, 0.9);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            border-radius: 6px;
+            pointer-events: none;
+            max-width: 250px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+        }
+
+        #tooltip h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+        }
+
+        #tooltip p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        /* Accessibility focus indicators */
+        button:focus, 
+        .node:focus {
+            outline: 2px solid #4D90FE;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode */
+        .high-contrast .node {
+            stroke: white;
+            stroke-width: 1.5px;
+        }
+
+        .high-contrast .link {
+            stroke-opacity: 0.7 !important;
+        }
+
+        /* Keyboard navigable focus indicator */
+        .keyboard-focus {
+            outline: 3px solid #4D90FE !important;
+            outline-offset: 3px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">TCC Career Pathway Explorer</h1>
+        <p class="subtitle">Explore your career journey through education and opportunities</p>
+    </div>
+    
+    <canvas id="stars"></canvas>
+    
+    <div id="graph-container">
+        <div id="loading">Loading pathways...</div>
+    </div>
+    
+    <div id="tooltip"></div>
+    <div id="details-panel"></div>
+    
+    <button class="legend-toggle" id="legend-toggle">Toggle Legend</button>
+    
+    <div class="legend" id="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 100, 100);"></div>
+            <span>Arts & Humanities</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(100, 150, 255);"></div>
+            <span>Business & Industry</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(100, 255, 150);"></div>
+            <span>Health Science</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 220, 100);"></div>
+            <span>Human & Public Service</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(200, 100, 255);"></div>
+            <span>STEM</span>
+        </div>
+    </div>
+    
+    <button class="reset-btn" id="reset-btn">Start Over</button>
+    
+    <div class="controls">
+        <button class="control-btn" id="zoom-in" title="Zoom In">+</button>
+        <button class="control-btn" id="zoom-reset" title="Reset View">⟳</button>
+        <button class="control-btn" id="zoom-out" title="Zoom Out">-</button>
+        <button class="control-btn" id="contrast-toggle" title="Toggle High Contrast">👁️</button>
+    </div>
+
+    <script>
+        // Initialize key variables
+        let currentSelection = null;
+        let highContrastMode = false;
+        let legendVisible = true;
+        
+        // Star background animation
+        function initStars() {
+            const canvas = document.getElementById('stars');
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            
+            // Set canvas size
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Star properties
+            const stars = [];
+            const numStars = 300;
+            const nebulae = [];
+            const numNebulae = 5;
+            
+            // Create stars
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.5,
+                    opacity: Math.random() * 0.9 + 0.1,
+                    speed: Math.random() * 0.05
+                });
+            }
+            
+            // Create nebulae
+            for (let i = 0; i < numNebulae; i++) {
+                nebulae.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 300 + 100,
+                    color: `hsla(${Math.random() * 360}, 70%, 50%, 0.1)`,
+                    rotation: Math.random() * 0.001
+                });
+            }
+            
+            // Animation function
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw nebulae
+                for (let nebula of nebulae) {
+                    const gradient = ctx.createRadialGradient(
+                        nebula.x, nebula.y, 0,
+                        nebula.x, nebula.y, nebula.radius
+                    );
+                    gradient.addColorStop(0, nebula.color);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.save();
+                    ctx.translate(nebula.x, nebula.y);
+                    ctx.rotate(Date.now() * nebula.rotation);
+                    ctx.translate(-nebula.x, -nebula.y);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.ellipse(
+                        nebula.x, nebula.y,
+                        nebula.radius, nebula.radius * 0.6,
+                        Date.now() * nebula.rotation,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+                
+                // Draw stars
+                for (let star of stars) {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * (0.5 + 0.5 * Math.sin(Date.now() * star.speed))})`;
+                    ctx.fill();
+                    
+                    // Move star slightly
+                    star.x += Math.sin(Date.now() * star.speed * 0.1) * 0.2;
+                    star.y += Math.cos(Date.now() * star.speed * 0.1) * 0.2;
+                    
+                    // Wrap around if off screen
+                    if (star.x < 0) star.x = width;
+                    if (star.x > width) star.x = 0;
+                    if (star.y < 0) star.y = height;
+                    if (star.y > height) star.y = 0;
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+            
+            animate();
+        }
+        
+        // Initialize the star background
+        initStars();
+
+        // Career pathway data
+        const pathwayData = {
+            arts: {
+                name: "Arts & Humanities",
+                color: "red",
+                description: "Explore creative and cultural fields",
+                programs: [
+                    {
+                        id: "graphic",
+                        name: "Graphic Communication",
+                        description: "Prepare for entry-level graphic production and design positions.",
+                        campus: "Northeast Campus",
+                        credentials: [
+                            {
+                                id: "cert1-graphic",
+                                name: "Computer Graphics",
+                                type: "Level 1 Certificate",
+                                credits: 36,
+                                duration: "1 year",
+                                cost: "$2,664"
+                            },
+                            {
+                                id: "cert2-graphic",
+                                name: "Photographic Retouching",
+                                type: "Level 1 Certificate",
+                                credits: 15,
+                                duration: "6 months",
+                                cost: "$1,110"
+                            },
+                            {
+                                id: "aas-graphic",
+                                name: "Graphic Communication",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "cert1-graphic": [
+                                {
+                                    title: "Production Artist",
+                                    salary: "$45,500",
+                                    outlook: "Growing",
+                                    description: "Prepare artwork files for print or digital production."
+                                },
+                                {
+                                    title: "Design Assistant",
+                                    salary: "$47,200",
+                                    outlook: "Stable",
+                                    description: "Support senior designers with layout and production tasks."
+                                }
+                            ],
+                            "cert2-graphic": [
+                                {
+                                    title: "Photo Retoucher",
+                                    salary: "$48,700",
+                                    outlook: "Growing",
+                                    description: "Enhance and restore photographic images."
+                                },
+                                {
+                                    title: "Digital Media Specialist",
+                                    salary: "$49,500",
+                                    outlook: "Growing",
+                                    description: "Create and edit digital imagery for various media platforms."
+                                }
+                            ],
+                            "aas-graphic": [
+                                {
+                                    title: "Graphic Designer",
+                                    salary: "$59,280",
+                                    outlook: "Stable",
+                                    description: "Create visual concepts for digital and print media."
+                                },
+                                {
+                                    title: "Web Designer",
+                                    salary: "$63,500",
+                                    outlook: "Growing",
+                                    description: "Design website layouts and interfaces."
+                                },
+                                {
+                                    title: "Marketing Designer",
+                                    salary: "$67,200",
+                                    outlook: "Growing",
+                                    description: "Create visual assets for marketing campaigns and promotional materials."
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        id: "music",
+                        name: "Music",
+                        description: "Study music theory and develop performance skills.",
+                        campus: "Northeast & Southeast Campuses",
+                        credentials: [
+                            {
+                                id: "aa-music",
+                                name: "Associate of Arts in Music",
+                                type: "Associate of Arts (A.A.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            },
+                            {
+                                id: "fos-music",
+                                name: "Music Field of Study",
+                                type: "Transfer Curriculum",
+                                credits: 31,
+                                duration: "1 year",
+                                cost: "$2,294"
+                            }
+                        ],
+                        careers: {
+                            "aa-music": [
+                                {
+                                    title: "Music Teacher",
+                                    salary: "$70,900",
+                                    outlook: "Stable",
+                                    description: "Teach music to students in various settings."
+                                },
+                                {
+                                    title: "Studio Musician",
+                                    salary: "$53,000",
+                                    outlook: "Competitive",
+                                    description: "Perform and record music in studio settings."
+                                },
+                                {
+                                    title: "Music Director",
+                                    salary: "$63,500",
+                                    outlook: "Limited",
+                                    description: "Lead musical performances and direct musicians."
+                                }
+                            ],
+                            "fos-music": [
+                                {
+                                    title: "Transfer to 4-year University",
+                                    salary: "Varies",
+                                    outlook: "Good",
+                                    description: "Continue education toward Bachelor's degree in Music."
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            business: {
+                name: "Business & Industry",
+                color: "blue",
+                description: "Develop skills for business and management",
+                programs: [
+                    {
+                        id: "accounting",
+                        name: "Accounting",
+                        description: "Learn to analyze financial information and prepare reports.",
+                        campus: "Multiple Campuses",
+                        credentials: [
+                            {
+                                id: "cert1-acct1",
+                                name: "Accounting Clerk I",
+                                type: "Level 1 Certificate",
+                                credits: 15,
+                                duration: "6 months",
+                                cost: "$1,110"
+                            },
+                            {
+                                id: "aas-acct",
+                                name: "Accounting Information Management",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "cert1-acct1": [
+                                {
+                                    title: "Bookkeeping Clerk",
+                                    salary: "$43,200",
+                                    outlook: "Stable",
+                                    description: "Maintain financial records and perform basic accounting tasks."
+                                },
+                                {
+                                    title: "Accounting Assistant",
+                                    salary: "$41,800",
+                                    outlook: "Stable",
+                                    description: "Provide support to accounting departments with clerical tasks."
+                                }
+                            ],
+                            "aas-acct": [
+                                {
+                                    title: "Staff Accountant",
+                                    salary: "$71,225",
+                                    outlook: "Growing",
+                                    description: "Prepare financial statements and analyze financial information."
+                                },
+                                {
+                                    title: "Tax Preparer",
+                                    salary: "$59,500",
+                                    outlook: "Stable",
+                                    description: "Prepare income tax returns for individuals or businesses."
+                                },
+                                {
+                                    title: "Financial Analyst",
+                                    salary: "$83,600",
+                                    outlook: "Growing",
+                                    description: "Analyze financial data to guide business decisions."
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        id: "business",
+                        name: "Business",
+                        description: "Build a strong foundation in business practices and principles.",
+                        campus: "Multiple Campuses",
+                        credentials: [
+                            {
+                                id: "aas-business",
+                                name: "Business Administration",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            },
+                            {
+                                id: "aa-business",
+                                name: "Associate of Arts in Business",
+                                type: "Associate of Arts (A.A.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "aas-business": [
+                                {
+                                    title: "Administrative Assistant",
+                                    salary: "$47,300",
+                                    outlook: "Stable",
+                                    description: "Provide administrative support to executives or departments."
+                                },
+                                {
+                                    title: "Customer Service Manager",
+                                    salary: "$55,600",
+                                    outlook: "Growing",
+                                    description: "Lead customer service teams and resolve customer issues."
+                                },
+                                {
+                                    title: "Office Manager",
+                                    salary: "$61,200",
+                                    outlook: "Growing",
+                                    description: "Oversee office operations and administrative staff."
+                                }
+                            ],
+                            "aa-business": [
+                                {
+                                    title: "Transfer to 4-year University",
+                                    salary: "Varies",
+                                    outlook: "Good",
+                                    description: "Continue education toward Bachelor's degree in Business."
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            health: {
+                name: "Health Science",
+                color: "green",
+                description: "Prepare for careers in healthcare",
+                programs: [
+                    {
+                        id: "nursing",
+                        name: "Nursing",
+                        description: "Prepare to provide patient care and support as a registered nurse.",
+                        campus: "Trinity River Campus East",
+                        credentials: [
+                            {
+                                id: "aas-nursing",
+                                name: "Nursing",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            },
+                            {
+                                id: "fos-nursing",
+                                name: "Nursing Field of Study",
+                                type: "Transfer Curriculum",
+                                credits: 34,
+                                duration: "1 year",
+                                cost: "$2,516"
+                            }
+                        ],
+                        careers: {
+                            "aas-nursing": [
+                                {
+                                    title: "Registered Nurse (RN)",
+                                    salary: "$86,190",
+                                    outlook: "High Growth",
+                                    description: "Provide and coordinate patient care in various healthcare settings."
+                                },
+                                {
+                                    title: "Emergency Department Nurse",
+                                    salary: "$89,300",
+                                    outlook: "High Growth",
+                                    description: "Provide immediate care to patients with acute conditions."
+                                },
+                                {
+                                    title: "Medical-Surgical Nurse",
+                                    salary: "$85,500",
+                                    outlook: "High Growth",
+                                    description: "Care for adult patients recovering from surgery or managing illness."
+                                }
+                            ],
+                            "fos-nursing": [
+                                {
+                                    title: "Transfer to BSN Program",
+                                    salary: "Varies",
+                                    outlook: "Excellent",
+                                    description: "Continue education toward Bachelor of Science in Nursing."
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        id: "ems",
+                        name: "Emergency Medical Services",
+                        description: "Learn basic and advanced life support procedures for emergency care.",
+                        campus: "Northwest Campus",
+                        credentials: [
+                            {
+                                id: "cert1-emt",
+                                name: "Emergency Medical Technician (EMT)",
+                                type: "Level 1 Certificate",
+                                credits: 16,
+                                duration: "1 semester",
+                                cost: "$1,184"
+                            },
+                            {
+                                id: "aas-para",
+                                name: "Paramedic",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "cert1-emt": [
+                                {
+                                    title: "Emergency Medical Technician",
+                                    salary: "$43,700",
+                                    outlook: "Growing",
+                                    description: "Respond to emergency calls and provide basic medical care."
+                                }
+                            ],
+                            "aas-para": [
+                                {
+                                    title: "Paramedic Supervisor",
+                                    salary: "$68,200",
+                                    outlook: "Stable",
+                                    description: "Lead teams of EMTs and paramedics responding to emergencies."
+                                },
+                                {
+                                    title: "EMS Instructor",
+                                    salary: "$62,800",
+                                    outlook: "Stable",
+                                    description: "Train new emergency medical technicians and paramedics."
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            public: {
+                name: "Human & Public Service",
+                color: "yellow",
+                description: "Serve your community",
+                programs: [
+                    {
+                        id: "criminal",
+                        name: "Criminal Justice",
+                        description: "Prepare for careers in law enforcement and criminal justice.",
+                        campus: "Multiple Campuses",
+                        credentials: [
+                            {
+                                id: "cert1-cj",
+                                name: "Criminal Justice",
+                                type: "Level 1 Certificate",
+                                credits: 24,
+                                duration: "9 months",
+                                cost: "$1,776"
+                            },
+                            {
+                                id: "aas-cj",
+                                name: "Criminal Justice",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "cert1-cj": [
+                                {
+                                    title: "Security Officer",
+                                    salary: "$42,300",
+                                    outlook: "Stable",
+                                    description: "Monitor and protect property against theft, vandalism, and illegal activity."
+                                },
+                                {
+                                    title: "Corrections Officer",
+                                    salary: "$47,600",
+                                    outlook: "Stable",
+                                    description: "Oversee individuals who have been arrested or sentenced to jail or prison."
+                                }
+                            ],
+                            "aas-cj": [
+                                {
+                                    title: "Police Officer",
+                                    salary: "$68,500",
+                                    outlook: "Stable",
+                                    description: "Protect lives and property through law enforcement."
+                                },
+                                {
+                                    title: "Probation Officer",
+                                    salary: "$58,200",
+                                    outlook: "Stable",
+                                    description: "Monitor offenders to prevent them from committing new crimes."
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        id: "teacher",
+                        name: "Teacher Education",
+                        description: "Prepare to teach children from kindergarten through 12th grade.",
+                        campus: "Multiple Campuses",
+                        credentials: [
+                            {
+                                id: "aat-ec6",
+                                name: "Associate of Arts in Teaching (EC-6)",
+                                type: "Associate of Arts in Teaching (A.A.T.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            },
+                            {
+                                id: "aat-48",
+                                name: "Associate of Arts in Teaching (4-8)",
+                                type: "Associate of Arts in Teaching (A.A.T.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "aat-ec6": [
+                                {
+                                    title: "Elementary School Teacher",
+                                    salary: "$63,500",
+                                    outlook: "Growing",
+                                    description: "Teach young students basic subjects and skills."
+                                }
+                            ],
+                            "aat-48": [
+                                {
+                                    title: "Middle School Teacher",
+                                    salary: "$65,200",
+                                    outlook: "Growing",
+                                    description: "Teach students in grades 4-8 specific subjects."
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            stem: {
+                name: "STEM",
+                color: "purple",
+                description: "Science, technology, engineering and math fields",
+                programs: [
+                    {
+                        id: "it-cyber",
+                        name: "Cybersecurity",
+                        description: "Learn to protect computer systems and networks from security threats.",
+                        campus: "Multiple Campuses",
+                        credentials: [
+                            {
+                                id: "cert1-cyber",
+                                name: "Cybersecurity",
+                                type: "Level 1 Certificate",
+                                credits: 21,
+                                duration: "9 months",
+                                cost: "$1,554"
+                            },
+                            {
+                                id: "aas-cyber",
+                                name: "Cybersecurity",
+                                type: "Associate of Applied Science (A.A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "cert1-cyber": [
+                                {
+                                    title: "Computer Support Specialist",
+                                    salary: "$58,600",
+                                    outlook: "Growing",
+                                    description: "Provide technical assistance and support for computer systems and networks."
+                                },
+                                {
+                                    title: "Security Technician",
+                                    salary: "$65,200",
+                                    outlook: "High Growth",
+                                    description: "Monitor and implement basic security measures for IT systems."
+                                }
+                            ],
+                            "aas-cyber": [
+                                {
+                                    title: "Cybersecurity Analyst",
+                                    salary: "$102,589",
+                                    outlook: "High Growth",
+                                    description: "Monitor networks for security breaches and investigate violations."
+                                },
+                                {
+                                    title: "Security Administrator",
+                                    salary: "$98,300",
+                                    outlook: "High Growth",
+                                    description: "Install and manage security software and hardware."
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        id: "engineering",
+                        name: "Engineering",
+                        description: "Prepare for transfer to a university engineering program.",
+                        campus: "Multiple Campuses",
+                        credentials: [
+                            {
+                                id: "as-eng",
+                                name: "Associate of Science in Engineering",
+                                type: "Associate of Science (A.S.)",
+                                credits: 60,
+                                duration: "2 years",
+                                cost: "$4,440"
+                            }
+                        ],
+                        careers: {
+                            "as-eng": [
+                                {
+                                    title: "Transfer to 4-year University",
+                                    salary: "Varies",
+                                    outlook: "Excellent",
+                                    description: "Continue education toward Bachelor's degree in Engineering."
+                                },
+                                {
+                                    title: "Engineering Technician",
+                                    salary: "$65,800",
+                                    outlook: "Stable",
+                                    description: "Assist engineers with design, development, and testing."
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        };
+
+        // Function to transform data into network graph structure with improved spacing
+        function transformData() {
+            const nodes = [];
+            const links = [];
+            let nodeId = 0;
+            
+            // Set up column widths 
+            const width = window.innerWidth;
+            const columnWidth = width / 5;
+            
+            // Column x-positions (centers)
+            const columnX = [
+                columnWidth * 0.5,        // Pathways
+                columnWidth * 1.5,        // Programs
+                columnWidth * 2.5,        // Credentials
+                columnWidth * 3.5,        // Careers
+                columnWidth * 4.5         // Details (not used for nodes)
+            ];
+            
+            // Color mappings
+            const colorMap = {
+                red: "rgb(255, 100, 120)",
+                blue: "rgb(100, 150, 255)",
+                green: "rgb(100, 255, 150)",
+                yellow: "rgb(255, 220, 100)",
+                purple: "rgb(200, 110, 255)"
+            };
+            
+            // Add pathway nodes (column 0)
+            const pathways = Object.keys(pathwayData);
+            const pathwayHeight = (window.innerHeight - 240) / pathways.length;
+            
+            pathways.forEach((pathwayKey, pathwayIndex) => {
+                const pathway = pathwayData[pathwayKey];
+                const y = 180 + (pathwayHeight * pathwayIndex) + (pathwayHeight / 2);
+                
+                const pathwayNode = {
+                    id: nodeId,
+                    name: pathway.name,
+                    type: "pathway",
+                    color: colorMap[pathway.color],
+                    size: 30,
+                    description: pathway.description,
+                    x: columnX[0],
+                    y: y,
+                    originalData: { ...pathway }
+                };
+                nodes.push(pathwayNode);
+                
+                const pathwayId = nodeId;
+                nodeId++;
+                
+                // Calculate program spacing
+                const programsCount = pathway.programs.length;
+                const programSpacing = 100; // Minimum space between programs
+                const totalProgramsHeight = programSpacing * (programsCount - 1);
+                
+                // Calculate vertical span for programs to ensure they're evenly distributed
+                const programsStartY = y - totalProgramsHeight / 2;
+                
+                // Add program nodes (column 1) with improved spacing
+                pathway.programs.forEach((program, programIndex) => {
+                    const programY = programsStartY + (programSpacing * programIndex);
+                    
+                    const programNode = {
+                        id: nodeId,
+                        name: program.name,
+                        type: "program",
+                        color: "rgb(255, 255, 255)",
+                        description: program.description,
+                        campus: program.campus,
+                        size: 20,
+                        x: columnX[1],
+                        y: programY,
+                        originalData: { ...program },
+                        pathwayId: pathwayId
+                    };
+                    nodes.push(programNode);
+                    
+                    // Link program to pathway
+                    links.push({
+                        source: pathwayId,
+                        target: nodeId,
+                        value: 3,
+                        color: pathwayNode.color
+                    });
+                    
+                    const programId = nodeId;
+                    nodeId++;
+                    
+                    // Calculate credential spacing
+                    const credentialsCount = program.credentials.length;
+                    const credentialSpacing = 80; // Minimum space between credentials
+                    const totalCredentialsHeight = credentialSpacing * (credentialsCount - 1);
+                    
+                    // Calculate vertical span for credentials
+                    const credentialsStartY = programY - totalCredentialsHeight / 2;
+                    
+                    // Add credential nodes (column 2) with improved spacing
+                    program.credentials.forEach((credential, credentialIndex) => {
+                        const credentialY = credentialsStartY + (credentialSpacing * credentialIndex);
+                        
+                        const credentialNode = {
+                            id: nodeId,
+                            name: credential.name,
+                            type: "credential",
+                            color: "rgb(180, 180, 255)",
+                            credType: credential.type,
+                            credits: credential.credits,
+                            duration: credential.duration,
+                            cost: credential.cost,
+                            size: 15,
+                            x: columnX[2],
+                            y: credentialY,
+                            originalData: { ...credential },
+                            pathwayId: pathwayId,
+                            programId: programId
+                        };
+                        nodes.push(credentialNode);
+                        
+                        // Link credential to program
+                        links.push({
+                            source: programId,
+                            target: nodeId,
+                            value: 2,
+                            color: pathwayNode.color
+                        });
+                        
+                        const credentialId = nodeId;
+                        nodeId++;
+                        
+                        // Add career nodes (column 3) with improved spacing
+                        if (program.careers && program.careers[credential.id]) {
+                            const careersCount = program.careers[credential.id].length;
+                            const careerSpacing = 60; // Minimum space between careers
+                            const totalCareersHeight = careerSpacing * (careersCount - 1);
+                            
+                            // Calculate vertical span for careers
+                            const careersStartY = credentialY - totalCareersHeight / 2;
+                            
+                            program.careers[credential.id].forEach((career, careerIndex) => {
+                                const careerY = careersStartY + (careerSpacing * careerIndex);
+                                
+                                const careerNode = {
+                                    id: nodeId,
+                                    name: career.title,
+                                    type: "career",
+                                    color: "rgb(255, 255, 180)",
+                                    salary: career.salary,
+                                    outlook: career.outlook,
+                                    description: career.description,
+                                    size: 10,
+                                    x: columnX[3],
+                                    y: careerY,
+                                    originalData: { ...career },
+                                    pathwayId: pathwayId,
+                                    programId: programId,
+                                    credentialId: credentialId
+                                };
+                                nodes.push(careerNode);
+                                
+                                // Link career to credential
+                                links.push({
+                                    source: credentialId,
+                                    target: nodeId,
+                                    value: 1,
+                                    color: pathwayNode.color
+                                });
+                                
+                                nodeId++;
+                            });
+                        }
+                    });
+                });
+            });
+            
+            return { nodes, links };
+        }
+
+        // Initialize and render the network graph
+        function createNetworkGraph() {
+            const graphData = transformData();
+            
+            // Get container dimensions
+            const container = document.getElementById('graph-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            // Create SVG with zoom behavior
+            const svg = d3.select('#graph-container')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+                
+            // Add zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 3])
+                .on('zoom', zoomed);
+                
+            svg.call(zoom);
+            
+            // Group that will be transformed by zoom
+            const g = svg.append('g');
+                
+            // Define the glow filter
+            const defs = svg.append("defs");
+            
+            // Create glow filters for each pathway color
+            const colors = ["red", "blue", "green", "yellow", "purple"];
+            
+            colors.forEach((color) => {
+                const filter = defs.append("filter")
+                    .attr("id", `glow-${color}`)
+                    .attr("width", "300%")
+                    .attr("height", "300%")
+                    .attr("x", "-100%")
+                    .attr("y", "-100%");
+                
+                filter.append("feGaussianBlur")
+                    .attr("stdDeviation", "4")
+                    .attr("result", "blur");
+                
+                filter.append("feFlood")
+                    .attr("flood-color", color)
+                    .attr("result", "color");
+                
+                filter.append("feComposite")
+                    .attr("in", "color")
+                    .attr("in2", "blur")
+                    .attr("operator", "in")
+                    .attr("result", "coloredBlur");
+                
+                const feMerge = filter.append("feMerge");
+                feMerge.append("feMergeNode")
+                    .attr("in", "coloredBlur");
+                feMerge.append("feMergeNode")
+                    .attr("in", "SourceGraphic");
+            });
+            
+            // Create the links
+            const link = g.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(graphData.links)
+                .enter()
+                .append("line")
+                .attr("x1", d => graphData.nodes.find(n => n.id === d.source).x)
+                .attr("y1", d => graphData.nodes.find(n => n.id === d.source).y)
+                .attr("x2", d => graphData.nodes.find(n => n.id === d.target).x)
+                .attr("y2", d => graphData.nodes.find(n => n.id === d.target).y)
+                .attr("stroke-width", d => d.value)
+                .attr("stroke", d => d.color)
+                .attr("stroke-opacity", 0)
+                .attr("class", d => {
+                    const source = typeof d.source === 'object' ? d.source.id : d.source;
+                    const target = typeof d.target === 'object' ? d.target.id : d.target;
+                    return `link link-${source}-${target}`;
+                })
+                .style("filter", d => {
+                    const colorName = d.color.includes("255, 100, 120") ? "red" : 
+                                      d.color.includes("100, 150, 255") ? "blue" : 
+                                      d.color.includes("100, 255, 150") ? "green" : 
+                                      d.color.includes("255, 220, 100") ? "yellow" : "purple";
+                    return `url(#glow-${colorName})`;
+                });
+            
+            // Create the nodes
+            const node = g.append("g")
+                .attr("class", "nodes")
+                .selectAll("circle")
+                .data(graphData.nodes)
+                .enter()
+                .append("circle")
+                .attr("r", d => d.size)
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("fill", d => d.color)
+                .attr("class", d => `node node-${d.id} node-${d.type}`)
+                .style("opacity", d => d.type === "pathway" ? 1 : 0) // Only show pathway nodes initially
+                .style("filter", d => {
+                    if (d.type === "pathway") {
+                        const colorName = d.color.includes("255, 100, 120") ? "red" : 
+                                          d.color.includes("100, 150, 255") ? "blue" : 
+                                          d.color.includes("100, 255, 150") ? "green" : 
+                                          d.color.includes("255, 220, 100") ? "yellow" : "purple";
+                        return `url(#glow-${colorName})`;
+                    }
+                    return null;
+                })
+                .attr("tabindex", d => d.type === "pathway" ? 0 : -1) // Make pathways keyboard focusable
+                .attr("role", "button")
+                .attr("aria-label", d => `${d.type}: ${d.name}`);
+            
+            // Add node labels with improved legibility
+            const nodeLabels = g.append("g")
+                .attr("class", "node-labels")
+                .selectAll("text")
+                .data(graphData.nodes)
+                .enter()
+                .append("text")
+                .attr("class", d => `node-label node-label-${d.id}`)
+                .text(d => d.name)
+                .attr("x", d => d.x)
+                .attr("y", d => {
+                    // Adjust label position based on node type
+                    switch(d.type) {
+                        case "pathway": return d.y + d.size + 15;
+                        case "program": return d.y + d.size + 12;
+                        case "credential": return d.y + d.size + 10;
+                        case "career": return d.y + d.size + 8;
+                        default: return d.y + d.size + 10;
+                    }
+                })
+                .attr("font-size", d => {
+                    switch(d.type) {
+                        case "pathway": return "16px";
+                        case "program": return "14px";
+                        case "credential": return "12px";
+                        case "career": return "11px";
+                    }
+                })
+                .attr("fill", "white")
+                .attr("text-anchor", "middle")
+                .style("opacity", d => d.type === "pathway" ? 1 : 0); // Only show pathway labels initially
+            
+            // Split long credential names into multiple lines for better readability
+            nodeLabels.each(function(d) {
+                if ((d.type === "credential" && d.name.length > 20) || 
+                    (d.type === "career" && d.name.length > 20)) {
+                    const text = d3.select(this);
+                    const words = d.name.split(/\s+/);
+                    const lineHeight = d.type === "credential" ? 14 : 12;
+                    text.text('');
+                    
+                    let line = '';
+                    let lineNumber = 0;
+                    
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = line + words[i] + ' ';
+                        if (testLine.length > 20) {
+                            text.append('tspan')
+                                .attr('x', d.x)
+                                .attr('y', d.y + d.size + 8 + (lineNumber * lineHeight))
+                                .text(line.trim());
+                            line = words[i] + ' ';
+                            lineNumber++;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    
+                    text.append('tspan')
+                        .attr('x', d.x)
+                        .attr('y', d.y + d.size + 8 + (lineNumber * lineHeight))
+                        .text(line.trim());
+                }
+            });
+            
+            // Zoom function
+            function zoomed(event) {
+                g.attr('transform', event.transform);
+            }
+            
+            // Enhanced tooltip functionality
+            node.on("mouseover", function(event, d) {
+                // Show tooltip with enhanced information
+                const tooltip = d3.select("#tooltip");
+                let tooltipContent = "";
+                
+                switch(d.type) {
+                    case "pathway":
+                        tooltipContent = `
+                            <h3 style="color: ${d.color}">${d.name}</h3>
+                            <p>${d.description}</p>
+                            <p>${d.originalData.programs.length} programs</p>
+                        `;
+                        break;
+                    case "program":
+                        tooltipContent = `
+                            <h3>${d.name}</h3>
+                            <p>${d.description}</p>
+                            <p>Campus: ${d.campus}</p>
+                        `;
+                        break;
+                    case "credential":
+                        tooltipContent = `
+                            <h3>${d.name}</h3>
+                            <p>${d.credType}</p>
+                            <p>${d.credits} credits | ${d.duration}</p>
+                            <p>${d.cost}</p>
+                        `;
+                        break;
+                    case "career":
+                        tooltipContent = `
+                            <h3>${d.name}</h3>
+                            <p>${d.description}</p>
+                            <p>Salary: ${d.salary}</p>
+                            <p>Outlook: ${d.outlook}</p>
+                        `;
+                        break;
+                }
+                
+                tooltip.html(tooltipContent)
+                    .style("left", (event.pageX + 15) + "px")
+                    .style("top", (event.pageY - 30) + "px")
+                    .style("opacity", 1);
+            })
+            .on("mouseout", function() {
+                // Hide tooltip
+                d3.select("#tooltip").style("opacity", 0);
+            })
+            .on("click", function(event, d) {
+                // Display details panel
+                showDetails(d);
+                
+                // Show the path relevant to this node
+                showPath(d);
+                
+                // Update current selection
+                currentSelection = d;
+                
+                // Make selected node tabbable
+                node.attr("tabindex", n => n.id === d.id ? 0 : -1);
+                
+                // Focus on selected node
+                this.focus();
+                
+                event.stopPropagation();
+            })
+            .on("keydown", function(event, d) {
+                // Handle keyboard navigation
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    // Trigger click event
+                    d3.select(this).dispatch("click");
+                }
+            });
+            
+            // Function to show only the path from pathway to selected node with improved user experience
+            function showPath(d) {
+                // Start by hiding all nodes and links
+                node.style("opacity", 0);
+                nodeLabels.style("opacity", 0);
+                link.style("stroke-opacity", 0);
+                
+                // Define nodes to show based on type
+                const nodesToShow = new Set();
+                
+                switch(d.type) {
+                    case "pathway":
+                        // Show pathway and its direct programs
+                        nodesToShow.add(d.id);
+                        // Find all programs connected to this pathway
+                        graphData.links.forEach(l => {
+                            const source = typeof l.source === 'object' ? l.source.id : l.source;
+                            const target = typeof l.target === 'object' ? l.target.id : l.target;
+                            if (source === d.id) {
+                                nodesToShow.add(target);
+                            }
+                        });
+                        break;
+                    case "program":
+                        // Show program, its pathway, and credentials
+                        nodesToShow.add(d.id);
+                        nodesToShow.add(d.pathwayId);
+                        // Find all credentials connected to this program
+                        graphData.links.forEach(l => {
+                            const source = typeof l.source === 'object' ? l.source.id : l.source;
+                            const target = typeof l.target === 'object' ? l.target.id : l.target;
+                            if (source === d.id) {
+                                nodesToShow.add(target);
+                            }
+                        });
+                        break;
+                    case "credential":
+                        // Show credential, its program, pathway, and careers
+                        nodesToShow.add(d.id);
+                        nodesToShow.add(d.programId);
+                        nodesToShow.add(d.pathwayId);
+                        // Find all careers connected to this credential
+                        graphData.links.forEach(l => {
+                            const source = typeof l.source === 'object' ? l.source.id : l.source;
+                            const target = typeof l.target === 'object' ? l.target.id : l.target;
+                            if (source === d.id) {
+                                nodesToShow.add(target);
+                            }
+                        });
+                        break;
+                    case "career":
+                        // Show career, credential, program, and pathway
+                        nodesToShow.add(d.id);
+                        nodesToShow.add(d.credentialId);
+                        nodesToShow.add(d.programId);
+                        nodesToShow.add(d.pathwayId);
+                        break;
+                }
+                
+                // Show relevant nodes with enhanced opacity
+                node.style("opacity", function(d) {
+                    return nodesToShow.has(d.id) ? 1 : 0;
+                });
+                
+                // Show relevant labels with enhanced opacity
+                nodeLabels.style("opacity", function(d) {
+                    return nodesToShow.has(d.id) ? 1 : 0;
+                });
+                
+                // Show relevant links with enhanced visibility
+                link.style("stroke-opacity", function(l) {
+                    const source = typeof l.source === 'object' ? l.source.id : l.source;
+                    const target = typeof l.target === 'object' ? l.target.id : l.target;
+                    
+                    if (nodesToShow.has(source) && nodesToShow.has(target)) {
+                        return 0.6; // Increased opacity for better visibility
+                    }
+                    return 0;
+                });
+                
+                // Make nodes tabbable
+                node.attr("tabindex", function(n) {
+                    return nodesToShow.has(n.id) ? 0 : -1;
+                });
+                
+                // Apply high contrast mode if enabled
+                if (highContrastMode) {
+                    document.body.classList.add('high-contrast');
+                }
+                
+                // Center view on the selected node
+                centerViewOnNode(d);
+            }
+            
+            // Function to center the view on a node
+            function centerViewOnNode(d) {
+                const scale = 1.5; // Zoom level
+                const x = d.x;
+                const y = d.y;
+                
+                // Calculate transform to center on the node
+                const transform = d3.zoomIdentity
+                    .translate(width / 2 - scale * x, height / 2 - scale * y)
+                    .scale(scale);
+                
+                // Apply the transform with transition
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, transform);
+            }
+            
+            // Function to show details in the right panel
+            function showDetails(d) {
+                const detailsPanel = document.getElementById('details-panel');
+                let content = "";
+                
+                // Get the pathway color
+                let pathwayColor;
+                if (d.type === "pathway") {
+                    pathwayColor = d.color;
+                } else {
+                    const pathwayNode = graphData.nodes.find(n => n.id === d.pathwayId);
+                    pathwayColor = pathwayNode ? pathwayNode.color : "white";
+                }
+                
+                // Prepare content based on node type
+                switch(d.type) {
+                    case "pathway":
+                        content = `
+                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
+                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">${d.description}</p>
+                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
+                            
+                            <div class="detail-section">
+                                <h3>Available Programs</h3>
+                                <p>${d.originalData.programs.length} programs in this pathway</p>
+                            </div>
+                        `;
+                        
+                        d.originalData.programs.forEach(program => {
+                            content += `
+                                <div class="info-card">
+                                    <h4>${program.name}</h4>
+                                    <p>${program.description}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        // Define pathway-specific URLs
+                        let pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/";
+                        switch(d.name) {
+                            case "Arts & Humanities":
+                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/visual-arts/";
+                                break;
+                            case "Business & Industry":
+                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/";
+                                break;
+                            case "Health Science":
+                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/nursing/";
+                                break;
+                            case "Human & Public Service":
+                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/";
+                                break;
+                            case "STEM":
+                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/info-tech-cybersecurity/";
+                                break;
+                        }
+                        
+                        content += `
+                            <a href="${pathwayUrl}" target="_blank" class="action-btn" style="background: ${pathwayColor}; text-decoration: none; display: inline-block; text-align: center;">
+                                Learn More
+                            </a>
+                        `;
+                        break;
+                    case "program":
+                        content = `
+                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
+                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">${d.description}</p>
+                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
+                            
+                            <div class="detail-section">
+                                <h3>Program Details</h3>
+                                <div class="info-card">
+                                    <p><strong>Campus:</strong> ${d.campus}</p>
+                                    <p><strong>Pathway:</strong> ${graphData.nodes.find(n => n.id === d.pathwayId).name}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h3>Available Credentials</h3>
+                            `;
+                            
+                            d.originalData.credentials.forEach(cred => {
+                                content += `
+                                    <div class="info-card">
+                                        <h4>${cred.name}</h4>
+                                        <p>${cred.type}</p>
+                                        <p>${cred.credits} credits | ${cred.duration} | ${cred.cost}</p>
+                                    </div>
+                                `;
+                            });
+                            
+                        content += `
+                            </div>
+                            
+                            <button class="action-btn" style="background: ${pathwayColor};">
+                                Program Details
+                            </button>
+                        `;
+                        break;
+                    case "credential":
+                        const careers = [];
+                        if (d.originalData.id) {
+                            const program = graphData.nodes.find(n => n.id === d.programId).originalData;
+                            if (program.careers && program.careers[d.originalData.id]) {
+                                careers.push(...program.careers[d.originalData.id]);
+                            }
+                        }
+                        
+                        content = `
+                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
+                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">${d.credType}</p>
+                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
+                            
+                            <div class="detail-section">
+                                <h3>Credential Details</h3>
+                                <div class="info-card">
+                                    <p><strong>Credits:</strong> ${d.credits}</p>
+                                    <p><strong>Duration:</strong> ${d.duration}</p>
+                                    <p><strong>Cost:</strong> ${d.cost}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h3>Program Information</h3>
+                                <p><strong>Program:</strong> ${graphData.nodes.find(n => n.id === d.programId).name}</p>
+                                <p><strong>Pathway:</strong> ${graphData.nodes.find(n => n.id === d.pathwayId).name}</p>
+                            </div>
+                        `;
+                        
+                        if (careers.length > 0) {
+                            content += `
+                                <div class="detail-section">
+                                    <h3>Career Opportunities</h3>
+                            `;
+                            
+                            careers.forEach(career => {
+                                content += `
+                                    <div class="career-item">
+                                        <div>
+                                            <h4>${career.title}</h4>
+                                            <p style="font-size: 12px; opacity: 0.8;">${career.outlook}</p>
+                                        </div>
+                                        <div style="color: #5cffbc; font-weight: bold;">
+                                            ${career.salary}
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            content += `</div>`;
+                        }
+                        
+                        content += `
+                            <button class="action-btn" style="background: ${pathwayColor};">
+                                Apply Now
+                            </button>
+                        `;
+                        break;
+                    case "career":
+                        content = `
+                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
+                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">Career Opportunity</p>
+                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
+                            
+                            <div class="detail-section">
+                                <h3>Career Overview</h3>
+                                <p>${d.description}</p>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h3>Salary & Outlook</h3>
+                                <div class="info-card">
+                                    <p><strong>Median Salary:</strong> <span style="color: #5cffbc; font-weight: bold; font-size: 18px;">${d.salary}</span></p>
+                                    <p><strong>Job Outlook:</strong> ${d.outlook}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h3>Required Education</h3>
+                                <p><strong>Credential:</strong> ${graphData.nodes.find(n => n.id === d.credentialId).name}</p>
+                                <p><strong>Program:</strong> ${graphData.nodes.find(n => n.id === d.programId).name}</p>
+                                <p><strong>Pathway:</strong> ${graphData.nodes.find(n => n.id === d.pathwayId).name}</p>
+                            </div>
+                            
+                            <button class="action-btn" style="background: ${pathwayColor};">
+                                Explore Job Listings
+                            </button>
+                        `;
+                        break;
+                }
+                
+                detailsPanel.innerHTML = content;
+                detailsPanel.className = "active";
+            }
+            
+            // Reset view button event handler
+            document.getElementById('reset-btn').addEventListener('click', function() {
+                // Hide details panel
+                document.getElementById('details-panel').className = "";
+                
+                // Reset to initial state - only show pathway nodes
+                node.style("opacity", d => d.type === "pathway" ? 1 : 0);
+                nodeLabels.style("opacity", d => d.type === "pathway" ? 1 : 0);
+                link.style("stroke-opacity", 0);
+                
+                // Reset zoom
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity);
+                
+                // Make pathway nodes tabbable
+                node.attr("tabindex", d => d.type === "pathway" ? 0 : -1);
+                
+                currentSelection = null;
+            });
+            
+            // Legend toggle event handler
+            document.getElementById('legend-toggle').addEventListener('click', function() {
+                const legend = document.getElementById('legend');
+                legendVisible = !legendVisible;
+                legend.classList.toggle('hidden', !legendVisible);
+                this.textContent = legendVisible ? "Hide Legend" : "Show Legend";
+            });
+            
+            // High contrast toggle event handler
+            document.getElementById('contrast-toggle').addEventListener('click', function() {
+                highContrastMode = !highContrastMode;
+                document.body.classList.toggle('high-contrast', highContrastMode);
+                this.title = highContrastMode ? "Disable High Contrast" : "Enable High Contrast";
+            });
+            
+            // Zoom control event handlers
+            document.getElementById('zoom-in').addEventListener('click', function() {
+                svg.transition()
+                    .duration(300)
+                    .call(zoom.scaleBy, 1.3);
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', function() {
+                svg.transition()
+                    .duration(300)
+                    .call(zoom.scaleBy, 0.7);
+            });
+            
+            document.getElementById('zoom-reset').addEventListener('click', function() {
+                if (currentSelection) {
+                    // Center on current selection if exists
+                    centerViewOnNode(currentSelection);
+                } else {
+                    // Reset to default view
+                    svg.transition()
+                        .duration(750)
+                        .call(zoom.transform, d3.zoomIdentity);
+                }
+            });
+            
+            // Add click event listener to graph container for deselection
+            container.addEventListener('click', function(event) {
+                // Only deselect if clicking on the background (not on nodes)
+                if (event.target === svg.node() || event.target === g.node()) {
+                    // Hide details panel
+                    document.getElementById('details-panel').className = "";
+                    
+                    // Reset to initial state - only show pathway nodes
+                    node.style("opacity", d => d.type === "pathway" ? 1 : 0);
+                    nodeLabels.style("opacity", d => d.type === "pathway" ? 1 : 0);
+                    link.style("stroke-opacity", 0);
+                    
+                    // Reset to default view
+                    svg.transition()
+                        .duration(750)
+                        .call(zoom.transform, d3.zoomIdentity);
+                    
+                    // Make pathway nodes tabbable
+                    node.attr("tabindex", d => d.type === "pathway" ? 0 : -1);
+                    
+                    currentSelection = null;
+                }
+            });
+            
+            // Keyboard navigation handler
+            document.addEventListener('keydown', function(event) {
+                // Escape key - reset view
+                if (event.key === "Escape") {
+                    document.getElementById('reset-btn').click();
+                }
+            });
+            
+            // Focus indicator for keyboard navigation
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Tab") {
+                    document.body.classList.add('keyboard-navigation');
+                }
+            });
+            
+            document.addEventListener('mousedown', function() {
+                document.body.classList.remove('keyboard-navigation');
+            });
+            
+            // Remove loading indicator
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // Initialize the visualization when the page loads
+        window.addEventListener('load', function() {
+            // Load D3.js dynamically if not already loaded
+            if (typeof d3 === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
+                script.onload = function() {
+                    setTimeout(createNetworkGraph, 500);
+                };
+                document.head.appendChild(script);
+            } else {
+                setTimeout(createNetworkGraph, 500);
+            }
+        });
+    </script>
+</body>
+</html>
