@@ -3,1946 +3,1539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TCC Career Pathway Explorer</title>
+    <title>TCC Interactive Career Pathway Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
     <style>
-        /* Base Styles */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000;
-            color: #fff;
+            background-color: #f0f2f5;
+            color: #333;
         }
-
-        /* Header */
-        .header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-            z-index: 10;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+        .pathway-section {
+            min-height: 500px;
+            transition: all 0.3s ease;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-
-        .title {
-            font-size: 24px;
-            margin: 0;
-            font-weight: 600;
+        .pathway-button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
         }
-
-        .subtitle {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-top: 5px;
+        .pathway-button:hover {
+            background-color: #f0f8ff;
         }
-
-        /* Controls */
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 10;
+        .pathway-button.active {
+            background-color: #e6f3ff;
+            border-left: 5px solid #0078d4;
         }
-
-        .control-btn {
-            background: rgba(30, 30, 50, 0.7);
-            border: 1px solid rgba(100, 100, 150, 0.5);
-            color: white;
+        .program-button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        .program-button:hover {
+            background-color: #f0f8ff;
+        }
+        .program-button.active {
+            background-color: #e6f3ff;
+            border-left: 3px solid #0078d4;
+        }
+        .credential-button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .credential-button:hover {
+            background-color: #f0f8ff;
+        }
+        .credential-button.active {
+            background-color: #e6f3ff;
+        }
+        .career-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .career-item:hover {
+            background-color: #f0f8ff;
+        }
+        .details-panel {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .pathway-icon {
             width: 40px;
             height: 40px;
+            text-align: center;
+            line-height: 40px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.2s ease;
-        }
-
-        .control-btn:hover {
-            background: rgba(60, 60, 100, 0.8);
-        }
-
-        .reset-btn {
-            background: rgba(30, 30, 50, 0.7);
-            border: 1px solid rgba(100, 100, 150, 0.5);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            z-index: 10;
+            font-size: 20px;
         }
-
-        .reset-btn:hover {
-            background: rgba(60, 60, 100, 0.8);
-        }
-
-        /* Toggle for legends */
-        .legend-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(30, 30, 50, 0.7);
-            border: 1px solid rgba(100, 100, 150, 0.5);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            z-index: 10;
-            font-size: 14px;
-        }
-
-        .legend-toggle:hover {
-            background: rgba(60, 60, 100, 0.8);
-        }
-
-        /* Legend */
-        .legend {
-            position: absolute;
-            top: 70px;
-            right: 20px;
-            background: rgba(10, 10, 30, 0.7);
-            border: 1px solid rgba(100, 100, 150, 0.5);
-            border-radius: 8px;
-            padding: 15px;
-            z-index: 9;
-            max-width: 200px;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .legend.hidden {
-            opacity: 0;
-            transform: translateX(50px);
-            pointer-events: none;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        /* Canvas and container styles */
-        #graph-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        #stars {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
-        /* Loading indicator */
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            z-index: 100;
-        }
-
-        /* Node styles */
-        .node {
-            transition: opacity 0.3s ease, r 0.3s ease;
-            cursor: pointer;
-        }
-
-        .node:hover {
-            filter: brightness(1.3);
-        }
-
-        .node-label {
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-            text-shadow: 0 0 5px #000, 0 0 10px #000;
-        }
-
-        /* Link styles */
-        .link {
-            transition: opacity 0.3s ease, stroke-opacity 0.3s ease;
-        }
-
-        /* Details panel */
-        #details-panel {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%) translateX(400px);
-            width: 300px;
-            max-height: 70vh;
-            background: rgba(10, 10, 30, 0.8);
-            border: 1px solid rgba(100, 100, 150, 0.5);
-            border-radius: 12px;
-            overflow-y: auto;
-            padding: 20px;
-            box-sizing: border-box;
-            opacity: 0;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 8;
-        }
-
-        #details-panel.active {
-            opacity: 1;
-            transform: translateY(-50%) translateX(0);
-        }
-
-        #details-panel h2 {
-            margin-top: 0;
-            margin-bottom: 5px;
-        }
-
-        #details-panel p {
+        .path-arts { background-color: #9C27B0; }
+        .path-business { background-color: #2196F3; }
+        .path-health { background-color: #4CAF50; }
+        .path-human { background-color: #FF9800; }
+        .path-stem { background-color: #E91E63; }
+        
+        .section-header {
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 10px;
             margin-bottom: 15px;
         }
-
-        .detail-section {
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(100, 100, 150, 0.3);
-            padding-bottom: 15px;
+        
+        .arrow-connector {
+            position: relative;
         }
-
-        .detail-section:last-child {
-            border-bottom: none;
+        .arrow-connector:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            width: 30px;
+            height: 2px;
+            background-color: #ccc;
+            transform: translateY(-50%);
         }
-
-        .info-card {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 12px;
-            border-radius: 6px;
-            margin: 10px 0;
-            border-left: 3px solid rgba(100, 100, 150, 0.5);
-        }
-
-        .career-item {
-            display: flex;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border-left: 3px solid rgba(100, 150, 250, 0.5);
-        }
-
-        .action-btn {
-            background: rgba(60, 80, 170, 0.6);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background: rgba(80, 100, 200, 0.7);
+        .arrow-connector:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #ccc;
+            border-right: 2px solid #ccc;
+            transform: translateY(-50%) rotate(45deg);
+            margin-right: -5px;
         }
         
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .title {
-                font-size: 18px;
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .lane-container {
+                flex-direction: column;
             }
-            
-            .subtitle {
-                font-size: 12px;
+            .pathway-section {
+                width: 100% !important;
+                margin-bottom: 20px;
             }
-            
-            #details-panel {
-                width: 80%;
-                max-width: 300px;
-            }
-            
-            .controls {
-                gap: 5px;
-            }
-            
-            .control-btn {
-                width: 35px;
-                height: 35px;
-                font-size: 16px;
+            .arrow-connector:after, .arrow-connector:before {
+                display: none;
             }
         }
-
-        /* Tooltip for node information */
-        #tooltip {
-            position: absolute;
-            padding: 10px;
-            background: rgba(10, 10, 30, 0.9);
-            border: 1px solid rgba(100, 100, 150, 0.5);
-            border-radius: 6px;
-            pointer-events: none;
-            max-width: 250px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            z-index: 100;
-        }
-
-        #tooltip h3 {
-            margin: 0 0 5px 0;
-            font-size: 16px;
-        }
-
-        #tooltip p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
-        /* Accessibility focus indicators */
-        button:focus, 
-        .node:focus {
-            outline: 2px solid #4D90FE;
-            outline-offset: 2px;
-        }
-
-        /* High contrast mode */
-        .high-contrast .node {
-            stroke: white;
-            stroke-width: 1.5px;
-        }
-
-        .high-contrast .link {
-            stroke-opacity: 0.7 !important;
-        }
-
-        /* Keyboard navigable focus indicator */
-        .keyboard-focus {
-            outline: 3px solid #4D90FE !important;
-            outline-offset: 3px !important;
+        
+        /* For PDF optimization */
+        @media print {
+            body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .lane-container {
+                flex-direction: column;
+            }
+            .pathway-section {
+                width: 100% !important;
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }
+            .details-panel {
+                page-break-inside: avoid;
+            }
         }
     </style>
 </head>
-<body>
-    <div class="header">
-        <h1 class="title">TCC Career Pathway Explorer</h1>
-        <p class="subtitle">Explore your career journey through education and opportunities</p>
-    </div>
-    
-    <canvas id="stars"></canvas>
-    
-    <div id="graph-container">
-        <div id="loading">Loading pathways...</div>
-    </div>
-    
-    <div id="tooltip"></div>
-    <div id="details-panel"></div>
-    
-    <button class="legend-toggle" id="legend-toggle">Toggle Legend</button>
-    
-    <div class="legend" id="legend">
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: rgb(255, 100, 100);"></div>
-            <span>Arts & Humanities</span>
+<body class="p-4">
+    <header class="mb-6">
+        <div class="container mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-2">TCC Career Pathway Explorer</h1>
+            <p class="text-center text-gray-600">Discover your educational journey from pathway to career at Tarrant County College</p>
         </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: rgb(100, 150, 255);"></div>
-            <span>Business & Industry</span>
+    </header>
+
+    <main class="container mx-auto mb-8">
+        <div class="lane-container flex mb-8 space-x-4 overflow-x-auto pb-4">
+            <!-- Lane 1: Pathway Selection -->
+            <div class="pathway-section w-1/5 p-4 flex-shrink-0">
+                <h2 class="text-xl font-bold mb-4 section-header">Choose Your Pathway</h2>
+                <div class="space-y-3" id="pathway-buttons">
+                    <div class="pathway-button flex items-center p-3 hover:bg-blue-50 rounded" data-pathway="arts">
+                        <div class="pathway-icon path-arts mr-3"><i class="fas fa-palette"></i></div>
+                        <div>
+                            <h3 class="font-semibold">Arts & Humanities</h3>
+                            <p class="text-sm text-gray-600">Design, perform, or create</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pathway-button flex items-center p-3 hover:bg-blue-50 rounded" data-pathway="business">
+                        <div class="pathway-icon path-business mr-3"><i class="fas fa-briefcase"></i></div>
+                        <div>
+                            <h3 class="font-semibold">Business & Industry</h3>
+                            <p class="text-sm text-gray-600">Plan, organize, and lead</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pathway-button flex items-center p-3 hover:bg-blue-50 rounded" data-pathway="health">
+                        <div class="pathway-icon path-health mr-3"><i class="fas fa-heartbeat"></i></div>
+                        <div>
+                            <h3 class="font-semibold">Health Science</h3>
+                            <p class="text-sm text-gray-600">Diagnose, treat, and care</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pathway-button flex items-center p-3 hover:bg-blue-50 rounded" data-pathway="human">
+                        <div class="pathway-icon path-human mr-3"><i class="fas fa-users"></i></div>
+                        <div>
+                            <h3 class="font-semibold">Human & Public Service</h3>
+                            <p class="text-sm text-gray-600">Protect, teach, and serve</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pathway-button flex items-center p-3 hover:bg-blue-50 rounded" data-pathway="stem">
+                        <div class="pathway-icon path-stem mr-3"><i class="fas fa-microchip"></i></div>
+                        <div>
+                            <h3 class="font-semibold">STEM</h3>
+                            <p class="text-sm text-gray-600">Analyze, build, and innovate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lane 2: Programs Inside the Pathway -->
+            <div class="pathway-section w-1/5 p-4 flex-shrink-0 arrow-connector" id="programs-section">
+                <h2 class="text-xl font-bold mb-4 section-header">Programs Inside the Pathway</h2>
+                <p class="text-gray-500 text-center py-10" id="programs-placeholder">Select a pathway to view available programs</p>
+                <div id="programs-list" class="space-y-2 hidden"></div>
+            </div>
+
+            <!-- Lane 3: Stackable Credentials Ladder -->
+            <div class="pathway-section w-1/5 p-4 flex-shrink-0 arrow-connector" id="credentials-section">
+                <h2 class="text-xl font-bold mb-4 section-header">Stackable Credentials</h2>
+                <p class="text-gray-500 text-center py-10" id="credentials-placeholder">Select a program to view credential options</p>
+                <div id="credentials-list" class="space-y-3 hidden"></div>
+            </div>
+
+            <!-- Lane 4: Career & Salary Targets -->
+            <div class="pathway-section w-1/5 p-4 flex-shrink-0 arrow-connector" id="careers-section">
+                <h2 class="text-xl font-bold mb-4 section-header">Career & Salary Targets</h2>
+                <p class="text-gray-500 text-center py-10" id="careers-placeholder">Select a credential to view career options</p>
+                <div id="careers-list" class="space-y-4 hidden"></div>
+            </div>
+
+            <!-- Lane 5: Details & Action Panel -->
+            <div class="pathway-section w-1/5 p-4 flex-shrink-0" id="details-section">
+                <h2 class="text-xl font-bold mb-4 section-header">Details & Action Panel</h2>
+                <p class="text-gray-500 text-center py-10" id="details-placeholder">Select a career to view details</p>
+                <div id="details-content" class="hidden">
+                    <div id="program-details" class="mb-4"></div>
+                    
+                    <div class="mb-6">
+                        <h3 class="font-semibold mb-2">Get Started</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://www.tccd.edu/admission/how-to-apply/" target="_blank" class="bg-blue-600 text-white text-center py-2 px-4 rounded hover:bg-blue-700">Apply Now</a>
+                            <a href="https://www.tccd.edu/academics/academic-help/advising/" target="_blank" class="bg-green-600 text-white text-center py-2 px-4 rounded hover:bg-green-700">Chat with Advisor</a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="font-semibold mb-2">Resources</h3>
+                        <ul class="space-y-2">
+                            <li><a href="https://www.tccd.edu/services/paying-for-college/financial-aid/" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-dollar-sign mr-2"></i> Financial Aid Info</a></li>
+                            <li><a href="https://www.tccd.edu/services/transfer-center/transfer-agreements/" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-exchange-alt mr-2"></i> Transfer Information</a></li>
+                            <li><a href="https://www.tccd.edu/services/support-services/career-services/" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-briefcase mr-2"></i> Career Services</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: rgb(100, 255, 150);"></div>
-            <span>Health Science</span>
+
+        <!-- Selection Breadcrumb Trail -->
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-8">
+            <div class="flex items-center flex-wrap" id="selection-path">
+                <span class="text-gray-500">Your selection: </span>
+                <span class="text-gray-400 mx-2">Select a pathway to begin</span>
+            </div>
         </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: rgb(255, 220, 100);"></div>
-            <span>Human & Public Service</span>
+
+        <!-- How to Use This Tool -->
+        <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+            <h2 class="text-xl font-bold mb-4">How to Use This Tool</h2>
+            <ol class="list-decimal pl-5 space-y-2">
+                <li>Start by selecting one of the five <strong>Pathway</strong> options</li>
+                <li>Browse and select from available <strong>Programs</strong> within your chosen pathway</li>
+                <li>View the <strong>Credential</strong> options for your selected program</li>
+                <li>Explore potential <strong>Career</strong> outcomes and salary information</li>
+                <li>Access <strong>Detailed Information</strong> and next steps in the action panel</li>
+            </ol>
         </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: rgb(200, 100, 255);"></div>
-            <span>STEM</span>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto text-center">
+            <p>Tarrant County College District - Interactive Career Pathway Explorer</p>
+            <p class="text-sm mt-2">This tool is designed to help students explore educational and career pathways at TCC.</p>
+            <div class="mt-4">
+                <a href="https://www.tccd.edu/" class="text-blue-300 hover:underline" target="_blank">TCC Website</a> |
+                <a href="https://www.tccd.edu/academics/courses-and-programs/programs-a-z/" class="text-blue-300 hover:underline" target="_blank">Programs A-Z</a> |
+                <a href="https://www.tccd.edu/admission/how-to-apply/" class="text-blue-300 hover:underline" target="_blank">Apply Now</a>
+            </div>
         </div>
-    </div>
-    
-    <button class="reset-btn" id="reset-btn">Start Over</button>
-    
-    <div class="controls">
-        <button class="control-btn" id="zoom-in" title="Zoom In">+</button>
-        <button class="control-btn" id="zoom-reset" title="Reset View">⟳</button>
-        <button class="control-btn" id="zoom-out" title="Zoom Out">-</button>
-        <button class="control-btn" id="contrast-toggle" title="Toggle High Contrast">👁️</button>
-    </div>
+    </footer>
 
     <script>
-        // Initialize key variables
-        let currentSelection = null;
-        let highContrastMode = false;
-        let legendVisible = true;
-        
-        // Star background animation
-        function initStars() {
-            const canvas = document.getElementById('stars');
-            const ctx = canvas.getContext('2d');
-            let width = window.innerWidth;
-            let height = window.innerHeight;
-            
-            // Set canvas size
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Star properties
-            const stars = [];
-            const numStars = 300;
-            const nebulae = [];
-            const numNebulae = 5;
-            
-            // Create stars
-            for (let i = 0; i < numStars; i++) {
-                stars.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    radius: Math.random() * 1.5,
-                    opacity: Math.random() * 0.9 + 0.1,
-                    speed: Math.random() * 0.05
-                });
-            }
-            
-            // Create nebulae
-            for (let i = 0; i < numNebulae; i++) {
-                nebulae.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    radius: Math.random() * 300 + 100,
-                    color: `hsla(${Math.random() * 360}, 70%, 50%, 0.1)`,
-                    rotation: Math.random() * 0.001
-                });
-            }
-            
-            // Animation function
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                
-                // Draw nebulae
-                for (let nebula of nebulae) {
-                    const gradient = ctx.createRadialGradient(
-                        nebula.x, nebula.y, 0,
-                        nebula.x, nebula.y, nebula.radius
-                    );
-                    gradient.addColorStop(0, nebula.color);
-                    gradient.addColorStop(1, 'transparent');
-                    
-                    ctx.save();
-                    ctx.translate(nebula.x, nebula.y);
-                    ctx.rotate(Date.now() * nebula.rotation);
-                    ctx.translate(-nebula.x, -nebula.y);
-                    
-                    ctx.fillStyle = gradient;
-                    ctx.beginPath();
-                    ctx.ellipse(
-                        nebula.x, nebula.y,
-                        nebula.radius, nebula.radius * 0.6,
-                        Date.now() * nebula.rotation,
-                        0, Math.PI * 2
-                    );
-                    ctx.fill();
-                    
-                    ctx.restore();
-                }
-                
-                // Draw stars
-                for (let star of stars) {
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * (0.5 + 0.5 * Math.sin(Date.now() * star.speed))})`;
-                    ctx.fill();
-                    
-                    // Move star slightly
-                    star.x += Math.sin(Date.now() * star.speed * 0.1) * 0.2;
-                    star.y += Math.cos(Date.now() * star.speed * 0.1) * 0.2;
-                    
-                    // Wrap around if off screen
-                    if (star.x < 0) star.x = width;
-                    if (star.x > width) star.x = 0;
-                    if (star.y < 0) star.y = height;
-                    if (star.y > height) star.y = 0;
-                }
-                
-                requestAnimationFrame(animate);
-            }
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                width = window.innerWidth;
-                height = window.innerHeight;
-                canvas.width = width;
-                canvas.height = height;
-            });
-            
-            animate();
-        }
-        
-        // Initialize the star background
-        initStars();
-
-        // Career pathway data
-        const pathwayData = {
-            arts: {
-                name: "Arts & Humanities",
-                color: "red",
-                description: "Explore creative and cultural fields",
-                programs: [
-                    {
-                        id: "graphic",
-                        name: "Graphic Communication",
-                        description: "Prepare for entry-level graphic production and design positions.",
-                        campus: "Northeast Campus",
-                        credentials: [
-                            {
-                                id: "cert1-graphic",
-                                name: "Computer Graphics",
-                                type: "Level 1 Certificate",
-                                credits: 36,
-                                duration: "1 year",
-                                cost: "$2,664"
-                            },
-                            {
-                                id: "cert2-graphic",
-                                name: "Photographic Retouching",
-                                type: "Level 1 Certificate",
-                                credits: 15,
-                                duration: "6 months",
-                                cost: "$1,110"
-                            },
-                            {
-                                id: "aas-graphic",
-                                name: "Graphic Communication",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            }
-                        ],
-                        careers: {
-                            "cert1-graphic": [
-                                {
-                                    title: "Production Artist",
-                                    salary: "$45,500",
-                                    outlook: "Growing",
-                                    description: "Prepare artwork files for print or digital production."
+        // ------- DATA MODEL -------
+        const tccData = {
+            pathways: {
+                arts: {
+                    title: "Arts & Humanities",
+                    icon: "fas fa-palette",
+                    color: "#9C27B0",
+                    description: "Design, exhibit, perform, or write",
+                    programs: {
+                        graphicComm: {
+                            title: "Graphic Communication",
+                            description: "Prepare for entry-level graphic production and design positions",
+                            campus: "Northeast",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/graphic-communication/",
+                            credentials: {
+                                cert1: {
+                                    title: "Computer Graphics Certificate (Level 1)",
+                                    credits: 36,
+                                    duration: "1 year",
+                                    cost: "$2,664"
                                 },
-                                {
-                                    title: "Design Assistant",
-                                    salary: "$47,200",
-                                    outlook: "Stable",
-                                    description: "Support senior designers with layout and production tasks."
-                                }
-                            ],
-                            "cert2-graphic": [
-                                {
-                                    title: "Photo Retoucher",
-                                    salary: "$48,700",
-                                    outlook: "Growing",
-                                    description: "Enhance and restore photographic images."
+                                cert2: {
+                                    title: "Photographic Retouching Certificate (Level 1)",
+                                    credits: 15,
+                                    duration: "1 semester",
+                                    cost: "$1,110"
                                 },
-                                {
-                                    title: "Digital Media Specialist",
-                                    salary: "$49,500",
-                                    outlook: "Growing",
-                                    description: "Create and edit digital imagery for various media platforms."
+                                aas: {
+                                    title: "Graphic Communication, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
                                 }
-                            ],
-                            "aas-graphic": [
-                                {
+                            },
+                            careers: {
+                                graphicDesigner: {
                                     title: "Graphic Designer",
                                     salary: "$59,280",
-                                    outlook: "Stable",
-                                    description: "Create visual concepts for digital and print media."
+                                    outlook: "Growing",
+                                    requirements: "AAS in Graphic Communication",
+                                    description: "Create visual concepts using computer software or by hand to communicate ideas that inspire, inform, or captivate consumers."
                                 },
-                                {
+                                webDesigner: {
                                     title: "Web Designer",
-                                    salary: "$63,500",
-                                    outlook: "Growing",
-                                    description: "Design website layouts and interfaces."
+                                    salary: "$67,231",
+                                    outlook: "High demand",
+                                    requirements: "AAS or Certificate",
+                                    description: "Design and create websites focusing on visual appearance, layout, and user experience."
                                 },
-                                {
-                                    title: "Marketing Designer",
-                                    salary: "$67,200",
-                                    outlook: "Growing",
-                                    description: "Create visual assets for marketing campaigns and promotional materials."
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        id: "music",
-                        name: "Music",
-                        description: "Study music theory and develop performance skills.",
-                        campus: "Northeast & Southeast Campuses",
-                        credentials: [
-                            {
-                                id: "aa-music",
-                                name: "Associate of Arts in Music",
-                                type: "Associate of Arts (A.A.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            },
-                            {
-                                id: "fos-music",
-                                name: "Music Field of Study",
-                                type: "Transfer Curriculum",
-                                credits: 31,
-                                duration: "1 year",
-                                cost: "$2,294"
-                            }
-                        ],
-                        careers: {
-                            "aa-music": [
-                                {
-                                    title: "Music Teacher",
-                                    salary: "$70,900",
+                                productionArtist: {
+                                    title: "Production Artist",
+                                    salary: "$48,922",
                                     outlook: "Stable",
-                                    description: "Teach music to students in various settings."
+                                    requirements: "Certificate or AAS",
+                                    description: "Prepare artwork files for print production, ensuring quality and consistency."
+                                }
+                            }
+                        },
+                        radioTv: {
+                            title: "Radio, TV & Film",
+                            description: "Develop performance and production skills in media",
+                            campus: "Northeast",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/radio-tv-film/",
+                            credentials: {
+                                aa: {
+                                    title: "Associate of Arts in Radio, TV & Film",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                broadcastTech: {
+                                    title: "Broadcast Technician",
+                                    salary: "$47,580",
+                                    outlook: "Stable",
+                                    requirements: "AA in Radio, TV & Film",
+                                    description: "Set up, operate, and maintain equipment used to record and transmit radio and television programs."
                                 },
-                                {
-                                    title: "Studio Musician",
-                                    salary: "$53,000",
+                                videoEditor: {
+                                    title: "Video Editor",
+                                    salary: "$59,810",
+                                    outlook: "Growing",
+                                    requirements: "AA in Radio, TV & Film",
+                                    description: "Edit footage, create sequences, and produce final video products."
+                                },
+                                productionAssistant: {
+                                    title: "Production Assistant",
+                                    salary: "$39,420",
                                     outlook: "Competitive",
-                                    description: "Perform and record music in studio settings."
+                                    requirements: "AA in Radio, TV & Film",
+                                    description: "Support film and TV productions with administrative tasks and on-set assistance."
+                                }
+                            }
+                        },
+                        music: {
+                            title: "Music",
+                            description: "Study music theory, performance, and composition",
+                            campus: "Southeast, Northwest",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/music/",
+                            credentials: {
+                                aa: {
+                                    title: "Associate of Arts in Music",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
                                 },
-                                {
-                                    title: "Music Director",
-                                    salary: "$63,500",
-                                    outlook: "Limited",
-                                    description: "Lead musical performances and direct musicians."
+                                fos: {
+                                    title: "Field of Study in Music",
+                                    credits: 31,
+                                    duration: "1 year",
+                                    cost: "$2,294"
                                 }
-                            ],
-                            "fos-music": [
-                                {
-                                    title: "Transfer to 4-year University",
-                                    salary: "Varies",
-                                    outlook: "Good",
-                                    description: "Continue education toward Bachelor's degree in Music."
+                            },
+                            careers: {
+                                musicTeacher: {
+                                    title: "Music Teacher",
+                                    salary: "$53,911",
+                                    outlook: "Stable",
+                                    requirements: "AA in Music plus transfer",
+                                    description: "Teach music theory, appreciation, or performance to students at various educational levels."
+                                },
+                                musician: {
+                                    title: "Musician/Performer",
+                                    salary: "$39,240",
+                                    outlook: "Competitive",
+                                    requirements: "Musical proficiency",
+                                    description: "Perform in concerts, recordings, or other venues as a vocalist or instrumentalist."
+                                },
+                                studioTechnician: {
+                                    title: "Recording Studio Technician",
+                                    salary: "$48,420",
+                                    outlook: "Growing",
+                                    requirements: "AA in Music with technical focus",
+                                    description: "Operate and maintain recording equipment to produce high-quality audio recordings."
                                 }
-                            ]
+                            }
+                        },
+                        visualArts: {
+                            title: "Visual Arts",
+                            description: "Develop skills in drawing, painting, and other visual media",
+                            campus: "Southeast, Northwest, Trinity River",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/visual-arts/",
+                            credentials: {
+                                aa: {
+                                    title: "Associate of Arts in Visual Arts",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                artTeacher: {
+                                    title: "Art Teacher",
+                                    salary: "$54,970",
+                                    outlook: "Stable",
+                                    requirements: "AA plus transfer to BA",
+                                    description: "Teach visual arts techniques and appreciation at various educational levels."
+                                },
+                                fineArtist: {
+                                    title: "Fine Artist",
+                                    salary: "$49,120",
+                                    outlook: "Competitive",
+                                    requirements: "Portfolio development",
+                                    description: "Create original artwork using various media for galleries, exhibitions, or commissions."
+                                },
+                                exhibitionDesigner: {
+                                    title: "Exhibition Designer",
+                                    salary: "$52,810",
+                                    outlook: "Stable",
+                                    requirements: "AA in Visual Arts",
+                                    description: "Design layouts for museums, galleries, and other exhibition spaces."
+                                }
+                            }
                         }
                     }
-                ]
-            },
-            business: {
-                name: "Business & Industry",
-                color: "blue",
-                description: "Develop skills for business and management",
-                programs: [
-                    {
-                        id: "accounting",
-                        name: "Accounting",
-                        description: "Learn to analyze financial information and prepare reports.",
-                        campus: "Multiple Campuses",
-                        credentials: [
-                            {
-                                id: "cert1-acct1",
-                                name: "Accounting Clerk I",
-                                type: "Level 1 Certificate",
-                                credits: 15,
-                                duration: "6 months",
-                                cost: "$1,110"
-                            },
-                            {
-                                id: "aas-acct",
-                                name: "Accounting Information Management",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            }
-                        ],
-                        careers: {
-                            "cert1-acct1": [
-                                {
-                                    title: "Bookkeeping Clerk",
-                                    salary: "$43,200",
-                                    outlook: "Stable",
-                                    description: "Maintain financial records and perform basic accounting tasks."
+                },
+                business: {
+                    title: "Business & Industry",
+                    icon: "fas fa-briefcase",
+                    color: "#2196F3",
+                    description: "Plan, organize, lead, and succeed",
+                    programs: {
+                        accounting: {
+                            title: "Accounting",
+                            description: "Build a strong foundation in accounting and business",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/accounting/",
+                            credentials: {
+                                cert1a: {
+                                    title: "Accounting Clerk I Certificate",
+                                    credits: 15,
+                                    duration: "1 semester",
+                                    cost: "$1,110"
                                 },
-                                {
-                                    title: "Accounting Assistant",
-                                    salary: "$41,800",
-                                    outlook: "Stable",
-                                    description: "Provide support to accounting departments with clerical tasks."
+                                cert1b: {
+                                    title: "Accounting Clerk II Certificate",
+                                    credits: 28,
+                                    duration: "2 semesters",
+                                    cost: "$2,072"
+                                },
+                                cert2: {
+                                    title: "Accounting Clerk III Certificate",
+                                    credits: 43,
+                                    duration: "3 semesters",
+                                    cost: "$3,182"
+                                },
+                                aas: {
+                                    title: "Accounting Information Management, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
                                 }
-                            ],
-                            "aas-acct": [
-                                {
+                            },
+                            careers: {
+                                accountingClerk: {
+                                    title: "Accounting Clerk",
+                                    salary: "$42,354",
+                                    outlook: "Stable",
+                                    requirements: "Certificate I or II",
+                                    description: "Process invoices, payments, and financial transactions, maintaining accurate records."
+                                },
+                                bookkeeper: {
+                                    title: "Bookkeeper",
+                                    salary: "$44,562",
+                                    outlook: "Steady demand",
+                                    requirements: "Certificate II or III",
+                                    description: "Maintain complete and accurate financial records for businesses."
+                                },
+                                accountant: {
                                     title: "Staff Accountant",
-                                    salary: "$71,225",
+                                    salary: "$67,878",
                                     outlook: "Growing",
-                                    description: "Prepare financial statements and analyze financial information."
-                                },
-                                {
-                                    title: "Tax Preparer",
-                                    salary: "$59,500",
-                                    outlook: "Stable",
-                                    description: "Prepare income tax returns for individuals or businesses."
-                                },
-                                {
-                                    title: "Financial Analyst",
-                                    salary: "$83,600",
-                                    outlook: "Growing",
-                                    description: "Analyze financial data to guide business decisions."
+                                    requirements: "AAS in Accounting",
+                                    description: "Prepare financial statements, analyze accounting data, and ensure compliance with regulations."
                                 }
-                            ]
-                        }
-                    },
-                    {
-                        id: "business",
-                        name: "Business",
-                        description: "Build a strong foundation in business practices and principles.",
-                        campus: "Multiple Campuses",
-                        credentials: [
-                            {
-                                id: "aas-business",
-                                name: "Business Administration",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            },
-                            {
-                                id: "aa-business",
-                                name: "Associate of Arts in Business",
-                                type: "Associate of Arts (A.A.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
                             }
-                        ],
-                        careers: {
-                            "aas-business": [
-                                {
-                                    title: "Administrative Assistant",
-                                    salary: "$47,300",
+                        },
+                        management: {
+                            title: "Management",
+                            description: "Learn leadership, communication, and human resource skills",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/management/",
+                            credentials: {
+                                cert1: {
+                                    title: "Management Certificate Level 1",
+                                    credits: 24,
+                                    duration: "2 semesters",
+                                    cost: "$1,776"
+                                },
+                                cert2: {
+                                    title: "Management Certificate Level 2",
+                                    credits: 42,
+                                    duration: "3 semesters",
+                                    cost: "$3,108"
+                                },
+                                aas: {
+                                    title: "Management, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                supervisor: {
+                                    title: "First-Line Supervisor",
+                                    salary: "$58,750",
                                     outlook: "Stable",
-                                    description: "Provide administrative support to executives or departments."
+                                    requirements: "Certificate or AAS",
+                                    description: "Direct daily work activities of employees in retail, production, or service environments."
                                 },
-                                {
-                                    title: "Customer Service Manager",
-                                    salary: "$55,600",
-                                    outlook: "Growing",
-                                    description: "Lead customer service teams and resolve customer issues."
-                                },
-                                {
+                                officeManager: {
                                     title: "Office Manager",
-                                    salary: "$61,200",
+                                    salary: "$62,410",
                                     outlook: "Growing",
-                                    description: "Oversee office operations and administrative staff."
+                                    requirements: "AAS in Management",
+                                    description: "Coordinate office activities and operations to ensure organizational effectiveness."
+                                },
+                                operationsManager: {
+                                    title: "Operations Manager",
+                                    salary: "$87,660",
+                                    outlook: "Strong demand",
+                                    requirements: "AAS plus experience",
+                                    description: "Plan and coordinate operations in various business settings to maximize efficiency."
                                 }
-                            ],
-                            "aa-business": [
-                                {
-                                    title: "Transfer to 4-year University",
-                                    salary: "Varies",
-                                    outlook: "Good",
-                                    description: "Continue education toward Bachelor's degree in Business."
+                            }
+                        },
+                        culinaryArts: {
+                            title: "Culinary Arts",
+                            description: "Prepare for commercial food preparation in hospitality settings",
+                            campus: "Southeast",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/culinary-arts/",
+                            credentials: {
+                                cert1: {
+                                    title: "Culinary Arts Certificate Level 1",
+                                    credits: 24,
+                                    duration: "1 year",
+                                    cost: "$1,776"
+                                },
+                                cert2: {
+                                    title: "Culinary Arts Certificate Level 2",
+                                    credits: 36,
+                                    duration: "1.5 years",
+                                    cost: "$2,664"
+                                },
+                                aas: {
+                                    title: "Culinary Arts, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
                                 }
-                            ]
+                            },
+                            careers: {
+                                lineCook: {
+                                    title: "Line Cook",
+                                    salary: "$31,630",
+                                    outlook: "High demand",
+                                    requirements: "Certificate Level 1",
+                                    description: "Prepare food in restaurants and other dining establishments."
+                                },
+                                sousCook: {
+                                    title: "Sous Chef",
+                                    salary: "$47,810",
+                                    outlook: "Growing",
+                                    requirements: "Certificate Level 2 or AAS",
+                                    description: "Supervise kitchen staff and assist the head chef in food preparation and kitchen management."
+                                },
+                                executiveChef: {
+                                    title: "Executive Chef",
+                                    salary: "$73,560",
+                                    outlook: "Competitive",
+                                    requirements: "AAS plus experience",
+                                    description: "Oversee all kitchen operations including menu planning, food preparation, and staff management."
+                                }
+                            }
+                        },
+                        hvacr: {
+                            title: "Heating, Air Conditioning & Refrigeration (HVAC/R)",
+                            description: "Prepare for a career installing and maintaining HVAC/R systems",
+                            campus: "South",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/hvac-r/",
+                            credentials: {
+                                cert1: {
+                                    title: "HVAC/R Certificate Level 1",
+                                    credits: 24,
+                                    duration: "1 year",
+                                    cost: "$1,776"
+                                },
+                                cert2: {
+                                    title: "HVAC/R Certificate Level 2",
+                                    credits: 42,
+                                    duration: "1.5 years",
+                                    cost: "$3,108"
+                                },
+                                aas: {
+                                    title: "HVAC/R Technology, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                hvacTech: {
+                                    title: "HVAC Technician",
+                                    salary: "$49,840",
+                                    outlook: "High demand",
+                                    requirements: "Certificate or AAS",
+                                    description: "Install, maintain, and repair heating, ventilation, air conditioning, and refrigeration systems."
+                                },
+                                refrigerationTech: {
+                                    title: "Refrigeration Technician",
+                                    salary: "$52,120",
+                                    outlook: "Growing",
+                                    requirements: "Certificate Level 2 or AAS",
+                                    description: "Specialize in installing and servicing commercial refrigeration systems."
+                                },
+                                hvacSupervisor: {
+                                    title: "HVAC Installation Supervisor",
+                                    salary: "$68,450",
+                                    outlook: "Stable growth",
+                                    requirements: "AAS plus experience",
+                                    description: "Oversee HVAC installation teams and ensure quality work and customer satisfaction."
+                                }
+                            }
                         }
                     }
-                ]
-            },
-            health: {
-                name: "Health Science",
-                color: "green",
-                description: "Prepare for careers in healthcare",
-                programs: [
-                    {
-                        id: "nursing",
-                        name: "Nursing",
-                        description: "Prepare to provide patient care and support as a registered nurse.",
-                        campus: "Trinity River Campus East",
-                        credentials: [
-                            {
-                                id: "aas-nursing",
-                                name: "Nursing",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
+                },
+                health: {
+                    title: "Health Science",
+                    icon: "fas fa-heartbeat",
+                    color: "#4CAF50",
+                    description: "Diagnose, treat, and care for others",
+                    programs: {
+                        nursing: {
+                            title: "Nursing",
+                            description: "Prepare to give and coordinate patient care",
+                            campus: "Trinity River Campus East",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/nursing/",
+                            credentials: {
+                                aas: {
+                                    title: "Nursing, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                },
+                                fos: {
+                                    title: "Nursing Field of Study",
+                                    credits: 34,
+                                    duration: "1 year",
+                                    cost: "$2,516"
+                                }
                             },
-                            {
-                                id: "fos-nursing",
-                                name: "Nursing Field of Study",
-                                type: "Transfer Curriculum",
-                                credits: 34,
-                                duration: "1 year",
-                                cost: "$2,516"
-                            }
-                        ],
-                        careers: {
-                            "aas-nursing": [
-                                {
+                            careers: {
+                                registeredNurse: {
                                     title: "Registered Nurse (RN)",
                                     salary: "$86,190",
-                                    outlook: "High Growth",
-                                    description: "Provide and coordinate patient care in various healthcare settings."
+                                    outlook: "High demand",
+                                    requirements: "AAS in Nursing + NCLEX-RN",
+                                    description: "Provide and coordinate patient care, educate patients about health conditions, and provide advice and emotional support."
                                 },
-                                {
-                                    title: "Emergency Department Nurse",
-                                    salary: "$89,300",
-                                    outlook: "High Growth",
-                                    description: "Provide immediate care to patients with acute conditions."
-                                },
-                                {
-                                    title: "Medical-Surgical Nurse",
-                                    salary: "$85,500",
-                                    outlook: "High Growth",
-                                    description: "Care for adult patients recovering from surgery or managing illness."
-                                }
-                            ],
-                            "fos-nursing": [
-                                {
-                                    title: "Transfer to BSN Program",
-                                    salary: "Varies",
-                                    outlook: "Excellent",
-                                    description: "Continue education toward Bachelor of Science in Nursing."
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        id: "ems",
-                        name: "Emergency Medical Services",
-                        description: "Learn basic and advanced life support procedures for emergency care.",
-                        campus: "Northwest Campus",
-                        credentials: [
-                            {
-                                id: "cert1-emt",
-                                name: "Emergency Medical Technician (EMT)",
-                                type: "Level 1 Certificate",
-                                credits: 16,
-                                duration: "1 semester",
-                                cost: "$1,184"
-                            },
-                            {
-                                id: "aas-para",
-                                name: "Paramedic",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            }
-                        ],
-                        careers: {
-                            "cert1-emt": [
-                                {
-                                    title: "Emergency Medical Technician",
-                                    salary: "$43,700",
+                                chargeNurse: {
+                                    title: "Charge Nurse",
+                                    salary: "$92,350",
                                     outlook: "Growing",
-                                    description: "Respond to emergency calls and provide basic medical care."
-                                }
-                            ],
-                            "aas-para": [
-                                {
-                                    title: "Paramedic Supervisor",
-                                    salary: "$68,200",
-                                    outlook: "Stable",
-                                    description: "Lead teams of EMTs and paramedics responding to emergencies."
+                                    requirements: "AAS + experience",
+                                    description: "Oversee nursing staff and patient care in a hospital unit or healthcare facility."
                                 },
-                                {
+                                nurseManager: {
+                                    title: "Nurse Manager",
+                                    salary: "$98,330",
+                                    outlook: "Strong growth",
+                                    requirements: "AAS + BSN + experience",
+                                    description: "Manage nursing staff, create work schedules, and maintain department standards and policies."
+                                }
+                            }
+                        },
+                        dentalHygiene: {
+                            title: "Dental Hygiene",
+                            description: "Become a licensed oral health professional",
+                            campus: "Northeast",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/dental-hygiene/",
+                            credentials: {
+                                aas: {
+                                    title: "Dental Hygiene, AAS",
+                                    credits: 68,
+                                    duration: "2 years",
+                                    cost: "$5,032"
+                                }
+                            },
+                            careers: {
+                                dentalHygienist: {
+                                    title: "Dental Hygienist",
+                                    salary: "$77,810",
+                                    outlook: "High demand",
+                                    requirements: "AAS in Dental Hygiene + license",
+                                    description: "Clean teeth, examine patients for oral diseases, and provide preventive dental care."
+                                },
+                                oralHealthEducator: {
+                                    title: "Oral Health Educator",
+                                    salary: "$68,250",
+                                    outlook: "Stable",
+                                    requirements: "AAS in Dental Hygiene",
+                                    description: "Educate communities about oral health and prevention of dental diseases."
+                                }
+                            }
+                        },
+                        radiologicTech: {
+                            title: "Radiologic Technology",
+                            description: "Learn to use x-rays to create images of body structures",
+                            campus: "Trinity River Campus East",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/radiologic-technology/",
+                            credentials: {
+                                aas: {
+                                    title: "Radiologic Technology, AAS",
+                                    credits: 65,
+                                    duration: "2 years",
+                                    cost: "$4,810"
+                                }
+                            },
+                            careers: {
+                                radiologicTech: {
+                                    title: "Radiologic Technologist",
+                                    salary: "$62,280",
+                                    outlook: "Growing",
+                                    requirements: "AAS + certification",
+                                    description: "Perform diagnostic imaging examinations, such as x-rays, on patients."
+                                },
+                                ctTechnologist: {
+                                    title: "CT Technologist",
+                                    salary: "$74,520",
+                                    outlook: "Strong demand",
+                                    requirements: "AAS + specialized training",
+                                    description: "Operate CT scanners to produce cross-sectional images of patients' bodies."
+                                }
+                            }
+                        },
+                        emergencyMedical: {
+                            title: "Emergency Medical Services - Paramedic",
+                            description: "Learn basic and advanced life support procedures",
+                            campus: "Northeast",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/emergency-medical-services-paramedic/",
+                            credentials: {
+                                cert1: {
+                                    title: "Paramedic Certificate",
+                                    credits: 42,
+                                    duration: "1.5 years",
+                                    cost: "$3,108"
+                                },
+                                aas: {
+                                    title: "Emergency Medical Services, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                paramedic: {
+                                    title: "Paramedic",
+                                    salary: "$50,340",
+                                    outlook: "High demand",
+                                    requirements: "Certificate or AAS + certification",
+                                    description: "Provide advanced emergency medical care for critical and emergent patients."
+                                },
+                                flightParamedic: {
+                                    title: "Flight Paramedic",
+                                    salary: "$67,490",
+                                    outlook: "Competitive",
+                                    requirements: "AAS + certification + experience",
+                                    description: "Provide emergency care during air transport of critically ill or injured patients."
+                                },
+                                emsInstructor: {
                                     title: "EMS Instructor",
-                                    salary: "$62,800",
+                                    salary: "$58,720",
                                     outlook: "Stable",
-                                    description: "Train new emergency medical technicians and paramedics."
+                                    requirements: "AAS + certification + teaching credentials",
+                                    description: "Teach emergency medical procedures to EMS candidates and professionals."
                                 }
-                            ]
+                            }
                         }
                     }
-                ]
-            },
-            public: {
-                name: "Human & Public Service",
-                color: "yellow",
-                description: "Serve your community",
-                programs: [
-                    {
-                        id: "criminal",
-                        name: "Criminal Justice",
-                        description: "Prepare for careers in law enforcement and criminal justice.",
-                        campus: "Multiple Campuses",
-                        credentials: [
-                            {
-                                id: "cert1-cj",
-                                name: "Criminal Justice",
-                                type: "Level 1 Certificate",
-                                credits: 24,
-                                duration: "9 months",
-                                cost: "$1,776"
-                            },
-                            {
-                                id: "aas-cj",
-                                name: "Criminal Justice",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            }
-                        ],
-                        careers: {
-                            "cert1-cj": [
-                                {
-                                    title: "Security Officer",
-                                    salary: "$42,300",
-                                    outlook: "Stable",
-                                    description: "Monitor and protect property against theft, vandalism, and illegal activity."
+                },
+                human: {
+                    title: "Human & Public Service",
+                    icon: "fas fa-users",
+                    color: "#FF9800",
+                    description: "Protect, teach, and serve the community",
+                    programs: {
+                        criminalJustice: {
+                            title: "Criminal Justice",
+                            description: "Prepare for work in law enforcement in public or private sectors",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/criminal-justice/",
+                            credentials: {
+                                cert: {
+                                    title: "Criminal Justice Certificate",
+                                    credits: 30,
+                                    duration: "1 year",
+                                    cost: "$2,220"
                                 },
-                                {
-                                    title: "Corrections Officer",
-                                    salary: "$47,600",
-                                    outlook: "Stable",
-                                    description: "Oversee individuals who have been arrested or sentenced to jail or prison."
+                                aas: {
+                                    title: "Criminal Justice, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                },
+                                aa: {
+                                    title: "Criminal Justice, AA (Transfer)",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
                                 }
-                            ],
-                            "aas-cj": [
-                                {
+                            },
+                            careers: {
+                                policeofficer: {
                                     title: "Police Officer",
-                                    salary: "$68,500",
+                                    salary: "$66,020",
                                     outlook: "Stable",
-                                    description: "Protect lives and property through law enforcement."
+                                    requirements: "Certificate or degree + academy",
+                                    description: "Protect lives and property, respond to emergencies, and enforce laws."
                                 },
-                                {
-                                    title: "Probation Officer",
-                                    salary: "$58,200",
-                                    outlook: "Stable",
-                                    description: "Monitor offenders to prevent them from committing new crimes."
+                                correctionsOfficer: {
+                                    title: "Corrections Officer",
+                                    salary: "$47,920",
+                                    outlook: "Steady",
+                                    requirements: "Certificate or AAS",
+                                    description: "Oversee individuals who have been arrested and are awaiting trial or who have been sentenced to serve time in jail."
+                                },
+                                securityManager: {
+                                    title: "Security Manager",
+                                    salary: "$73,710",
+                                    outlook: "Growing",
+                                    requirements: "AAS + experience",
+                                    description: "Plan and coordinate security activities for an organization or facility."
                                 }
-                            ]
-                        }
-                    },
-                    {
-                        id: "teacher",
-                        name: "Teacher Education",
-                        description: "Prepare to teach children from kindergarten through 12th grade.",
-                        campus: "Multiple Campuses",
-                        credentials: [
-                            {
-                                id: "aat-ec6",
-                                name: "Associate of Arts in Teaching (EC-6)",
-                                type: "Associate of Arts in Teaching (A.A.T.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            },
-                            {
-                                id: "aat-48",
-                                name: "Associate of Arts in Teaching (4-8)",
-                                type: "Associate of Arts in Teaching (A.A.T.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
                             }
-                        ],
-                        careers: {
-                            "aat-ec6": [
-                                {
+                        },
+                        childDevelopment: {
+                            title: "Child Development",
+                            description: "Prepare to be a lead teacher or director of early care and education programs",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/child-development/",
+                            credentials: {
+                                cert1: {
+                                    title: "Child Development Certificate Level 1",
+                                    credits: 24,
+                                    duration: "1 year",
+                                    cost: "$1,776"
+                                },
+                                cert2: {
+                                    title: "Child Development Certificate Level 2",
+                                    credits: 42,
+                                    duration: "1.5 years",
+                                    cost: "$3,108"
+                                },
+                                aas: {
+                                    title: "Child Development, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                preschoolTeacher: {
+                                    title: "Preschool Teacher",
+                                    salary: "$32,860",
+                                    outlook: "Growing",
+                                    requirements: "Certificate Level 1 or higher",
+                                    description: "Educate and care for children younger than school age."
+                                },
+                                childcareCenterDirector: {
+                                    title: "Childcare Center Director",
+                                    salary: "$48,210",
+                                    outlook: "Stable",
+                                    requirements: "AAS + experience",
+                                    description: "Supervise childcare workers, design program plans, and oversee daily activities at childcare centers."
+                                },
+                                earlyInterventionist: {
+                                    title: "Early Childhood Interventionist",
+                                    salary: "$42,810",
+                                    outlook: "Growing",
+                                    requirements: "AAS + specialized training",
+                                    description: "Work with young children with developmental delays or disabilities."
+                                }
+                            }
+                        },
+                        teacherEducation: {
+                            title: "Teacher Education",
+                            description: "Prepare to teach children from kindergarten through 12th grade",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/teacher-education/",
+                            credentials: {
+                                aat1: {
+                                    title: "Associate of Arts in Teaching (EC-6)",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                },
+                                aat2: {
+                                    title: "Associate of Arts in Teaching (4-8, EC-12 Special Education)",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                },
+                                aat3: {
+                                    title: "Associate of Arts in Teaching (8-12, EC-12 Other)",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                elementaryTeacher: {
                                     title: "Elementary School Teacher",
-                                    salary: "$63,500",
-                                    outlook: "Growing",
-                                    description: "Teach young students basic subjects and skills."
-                                }
-                            ],
-                            "aat-48": [
-                                {
-                                    title: "Middle School Teacher",
-                                    salary: "$65,200",
-                                    outlook: "Growing",
-                                    description: "Teach students in grades 4-8 specific subjects."
-                                }
-                            ]
-                        }
-                    }
-                ]
-            },
-            stem: {
-                name: "STEM",
-                color: "purple",
-                description: "Science, technology, engineering and math fields",
-                programs: [
-                    {
-                        id: "it-cyber",
-                        name: "Cybersecurity",
-                        description: "Learn to protect computer systems and networks from security threats.",
-                        campus: "Multiple Campuses",
-                        credentials: [
-                            {
-                                id: "cert1-cyber",
-                                name: "Cybersecurity",
-                                type: "Level 1 Certificate",
-                                credits: 21,
-                                duration: "9 months",
-                                cost: "$1,554"
-                            },
-                            {
-                                id: "aas-cyber",
-                                name: "Cybersecurity",
-                                type: "Associate of Applied Science (A.A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            }
-                        ],
-                        careers: {
-                            "cert1-cyber": [
-                                {
-                                    title: "Computer Support Specialist",
-                                    salary: "$58,600",
-                                    outlook: "Growing",
-                                    description: "Provide technical assistance and support for computer systems and networks."
-                                },
-                                {
-                                    title: "Security Technician",
-                                    salary: "$65,200",
-                                    outlook: "High Growth",
-                                    description: "Monitor and implement basic security measures for IT systems."
-                                }
-                            ],
-                            "aas-cyber": [
-                                {
-                                    title: "Cybersecurity Analyst",
-                                    salary: "$102,589",
-                                    outlook: "High Growth",
-                                    description: "Monitor networks for security breaches and investigate violations."
-                                },
-                                {
-                                    title: "Security Administrator",
-                                    salary: "$98,300",
-                                    outlook: "High Growth",
-                                    description: "Install and manage security software and hardware."
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        id: "engineering",
-                        name: "Engineering",
-                        description: "Prepare for transfer to a university engineering program.",
-                        campus: "Multiple Campuses",
-                        credentials: [
-                            {
-                                id: "as-eng",
-                                name: "Associate of Science in Engineering",
-                                type: "Associate of Science (A.S.)",
-                                credits: 60,
-                                duration: "2 years",
-                                cost: "$4,440"
-                            }
-                        ],
-                        careers: {
-                            "as-eng": [
-                                {
-                                    title: "Transfer to 4-year University",
-                                    salary: "Varies",
-                                    outlook: "Excellent",
-                                    description: "Continue education toward Bachelor's degree in Engineering."
-                                },
-                                {
-                                    title: "Engineering Technician",
-                                    salary: "$65,800",
+                                    salary: "$59,420",
                                     outlook: "Stable",
-                                    description: "Assist engineers with design, development, and testing."
+                                    requirements: "AAT + BA + certification",
+                                    description: "Teach basic subjects to children in elementary grades."
+                                },
+                                middleSchoolTeacher: {
+                                    title: "Middle School Teacher",
+                                    salary: "$60,810",
+                                    outlook: "Steady",
+                                    requirements: "AAT + BA + certification",
+                                    description: "Teach students in grades 6-8 specific subject areas."
+                                },
+                                highSchoolTeacher: {
+                                    title: "High School Teacher",
+                                    salary: "$62,870",
+                                    outlook: "Stable",
+                                    requirements: "AAT + BA + certification",
+                                    description: "Teach academic or technical subjects to students in grades 9-12."
                                 }
-                            ]
+                            }
+                        },
+                        fireProtection: {
+                            title: "Fire Protection Technology",
+                            description: "Help keep your community safe in crises",
+                            campus: "Northwest",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/fire-technology/",
+                            credentials: {
+                                cert: {
+                                    title: "Basic Firefighter Certificate",
+                                    credits: 24,
+                                    duration: "1 year",
+                                    cost: "$1,776"
+                                },
+                                aas: {
+                                    title: "Fire Protection Technology, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                firefighter: {
+                                    title: "Firefighter",
+                                    salary: "$53,240",
+                                    outlook: "Competitive",
+                                    requirements: "Certificate + academy training",
+                                    description: "Control and extinguish fires, protect lives, and respond to emergency situations."
+                                },
+                                fireinspector: {
+                                    title: "Fire Inspector",
+                                    salary: "$62,120",
+                                    outlook: "Stable",
+                                    requirements: "AAS + certification",
+                                    description: "Ensure compliance with fire codes and conduct fire prevention inspections."
+                                },
+                                fireChief: {
+                                    title: "Fire Lieutenant/Captain",
+                                    salary: "$78,870",
+                                    outlook: "Limited openings",
+                                    requirements: "AAS + experience + advancement",
+                                    description: "Supervise firefighters and coordinate emergency response activities."
+                                }
+                            }
                         }
                     }
-                ]
+                },
+                stem: {
+                    title: "STEM",
+                    icon: "fas fa-microchip",
+                    color: "#E91E63",
+                    description: "Analyze, build, and innovate",
+                    programs: {
+                        cybersecurity: {
+                            title: "Information Technology - Cybersecurity",
+                            description: "Prepare for work in the growing information security field",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/info-tech-cybersecurity/",
+                            credentials: {
+                                cert1: {
+                                    title: "Information Security Level 1 Certificate",
+                                    credits: 30,
+                                    duration: "1 year",
+                                    cost: "$2,220"
+                                },
+                                cert2: {
+                                    title: "Network Security Administrator Level 2 Certificate",
+                                    credits: 45,
+                                    duration: "1.5 years",
+                                    cost: "$3,330"
+                                },
+                                aas: {
+                                    title: "Information Technology - Cybersecurity, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                securityAnalyst: {
+                                    title: "Information Security Analyst",
+                                    salary: "$109,313",
+                                    outlook: "High demand",
+                                    requirements: "AAS in Cybersecurity",
+                                    description: "Plan and implement security measures to protect computer networks and systems."
+                                },
+                                securityTechnician: {
+                                    title: "Security Operations Technician",
+                                    salary: "$86,480",
+                                    outlook: "Growing rapidly",
+                                    requirements: "Certificate or AAS",
+                                    description: "Monitor security systems and respond to security incidents."
+                                },
+                                penetrationTester: {
+                                    title: "Penetration Tester",
+                                    salary: "$102,589",
+                                    outlook: "Strong demand",
+                                    requirements: "AAS + certifications",
+                                    description: "Conduct authorized simulated attacks to identify vulnerabilities in systems."
+                                }
+                            }
+                        },
+                        programming: {
+                            title: "Information Technology - Programming",
+                            description: "Learn to write and maintain computer programs",
+                            campus: "Multiple campuses",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/info-tech-programming/",
+                            credentials: {
+                                cert1: {
+                                    title: "Basic Programming Level 1 Certificate",
+                                    credits: 30,
+                                    duration: "1 year",
+                                    cost: "$2,220"
+                                },
+                                cert2: {
+                                    title: "Advanced Programming Level 2 Certificate",
+                                    credits: 45,
+                                    duration: "1.5 years",
+                                    cost: "$3,330"
+                                },
+                                aas: {
+                                    title: "Information Technology - Programming, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                programmer: {
+                                    title: "Computer Programmer",
+                                    salary: "$92,347",
+                                    outlook: "Stable",
+                                    requirements: "AAS in Programming",
+                                    description: "Write and test code that allows computer applications and software programs to function properly."
+                                },
+                                webDeveloper: {
+                                    title: "Web Developer",
+                                    salary: "$77,200",
+                                    outlook: "Growing",
+                                    requirements: "Certificate or AAS",
+                                    description: "Design and create websites focusing on both functionality and user experience."
+                                },
+                                softwareDeveloper: {
+                                    title: "Software Developer",
+                                    salary: "$110,140",
+                                    outlook: "High demand",
+                                    requirements: "AAS + experience",
+                                    description: "Develop applications or systems that run on computers or other devices."
+                                }
+                            }
+                        },
+                        engineering: {
+                            title: "Engineering",
+                            description: "Prepare for transfer to a 4-year university engineering program",
+                            campus: "Southeast, South",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/engineering/",
+                            credentials: {
+                                as: {
+                                    title: "Associate of Science in Engineering",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                engineeringTech: {
+                                    title: "Engineering Technician",
+                                    salary: "$64,380",
+                                    outlook: "Stable",
+                                    requirements: "AS in Engineering",
+                                    description: "Assist engineers with research, development, and production."
+                                },
+                                engineeringTransfer: {
+                                    title: "Transfer to Bachelor's in Engineering",
+                                    salary: "Varies by specialization",
+                                    outlook: "Preparation for further education",
+                                    requirements: "AS in Engineering",
+                                    description: "Complete first two years of engineering education before transferring to a 4-year university."
+                                }
+                            }
+                        },
+                        robotics: {
+                            title: "Electronics Technology - Robotics & Automation",
+                            description: "Prepare to work as a robotics and automation technician",
+                            campus: "South",
+                            url: "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/electronics-technology-robotics-and-automation/",
+                            credentials: {
+                                cert1: {
+                                    title: "Robotics & Automation Level 1 Certificate",
+                                    credits: 24,
+                                    duration: "1 year",
+                                    cost: "$1,776"
+                                },
+                                cert2: {
+                                    title: "Advanced Robotics Level 2 Certificate",
+                                    credits: 42,
+                                    duration: "1.5 years",
+                                    cost: "$3,108"
+                                },
+                                aas: {
+                                    title: "Electronics Technology - Robotics & Automation, AAS",
+                                    credits: 60,
+                                    duration: "2 years",
+                                    cost: "$4,440"
+                                }
+                            },
+                            careers: {
+                                roboticsTech: {
+                                    title: "Robotics Technician",
+                                    salary: "$59,480",
+                                    outlook: "Growing rapidly",
+                                    requirements: "Certificate or AAS",
+                                    description: "Build, install, test, and maintain robotic equipment or related automated systems."
+                                },
+                                automationTech: {
+                                    title: "Automation Technician",
+                                    salary: "$63,240",
+                                    outlook: "Strong demand",
+                                    requirements: "AAS in Robotics",
+                                    description: "Maintain and repair automated systems and programmable logic controllers in manufacturing settings."
+                                },
+                                industrialMaintenance: {
+                                    title: "Industrial Maintenance Technician",
+                                    salary: "$58,350",
+                                    outlook: "Stable",
+                                    requirements: "Certificate Level 2 or AAS",
+                                    description: "Maintain and repair factory equipment and industrial machinery."
+                                }
+                            }
+                        }
+                    }
+                }
             }
         };
 
-        // Function to transform data into network graph structure with improved spacing
-        function transformData() {
-            const nodes = [];
-            const links = [];
-            let nodeId = 0;
-            
-            // Set up column widths 
-            const width = window.innerWidth;
-            const columnWidth = width / 5;
-            
-            // Column x-positions (centers)
-            const columnX = [
-                columnWidth * 0.5,        // Pathways
-                columnWidth * 1.5,        // Programs
-                columnWidth * 2.5,        // Credentials
-                columnWidth * 3.5,        // Careers
-                columnWidth * 4.5         // Details (not used for nodes)
-            ];
-            
-            // Color mappings
-            const colorMap = {
-                red: "rgb(255, 100, 120)",
-                blue: "rgb(100, 150, 255)",
-                green: "rgb(100, 255, 150)",
-                yellow: "rgb(255, 220, 100)",
-                purple: "rgb(200, 110, 255)"
-            };
-            
-            // Add pathway nodes (column 0)
-            const pathways = Object.keys(pathwayData);
-            const pathwayHeight = (window.innerHeight - 240) / pathways.length;
-            
-            pathways.forEach((pathwayKey, pathwayIndex) => {
-                const pathway = pathwayData[pathwayKey];
-                const y = 180 + (pathwayHeight * pathwayIndex) + (pathwayHeight / 2);
-                
-                const pathwayNode = {
-                    id: nodeId,
-                    name: pathway.name,
-                    type: "pathway",
-                    color: colorMap[pathway.color],
-                    size: 30,
-                    description: pathway.description,
-                    x: columnX[0],
-                    y: y,
-                    originalData: { ...pathway }
-                };
-                nodes.push(pathwayNode);
-                
-                const pathwayId = nodeId;
-                nodeId++;
-                
-                // Calculate program spacing
-                const programsCount = pathway.programs.length;
-                const programSpacing = 100; // Minimum space between programs
-                const totalProgramsHeight = programSpacing * (programsCount - 1);
-                
-                // Calculate vertical span for programs to ensure they're evenly distributed
-                const programsStartY = y - totalProgramsHeight / 2;
-                
-                // Add program nodes (column 1) with improved spacing
-                pathway.programs.forEach((program, programIndex) => {
-                    const programY = programsStartY + (programSpacing * programIndex);
-                    
-                    const programNode = {
-                        id: nodeId,
-                        name: program.name,
-                        type: "program",
-                        color: "rgb(255, 255, 255)",
-                        description: program.description,
-                        campus: program.campus,
-                        size: 20,
-                        x: columnX[1],
-                        y: programY,
-                        originalData: { ...program },
-                        pathwayId: pathwayId
-                    };
-                    nodes.push(programNode);
-                    
-                    // Link program to pathway
-                    links.push({
-                        source: pathwayId,
-                        target: nodeId,
-                        value: 3,
-                        color: pathwayNode.color
-                    });
-                    
-                    const programId = nodeId;
-                    nodeId++;
-                    
-                    // Calculate credential spacing
-                    const credentialsCount = program.credentials.length;
-                    const credentialSpacing = 80; // Minimum space between credentials
-                    const totalCredentialsHeight = credentialSpacing * (credentialsCount - 1);
-                    
-                    // Calculate vertical span for credentials
-                    const credentialsStartY = programY - totalCredentialsHeight / 2;
-                    
-                    // Add credential nodes (column 2) with improved spacing
-                    program.credentials.forEach((credential, credentialIndex) => {
-                        const credentialY = credentialsStartY + (credentialSpacing * credentialIndex);
-                        
-                        const credentialNode = {
-                            id: nodeId,
-                            name: credential.name,
-                            type: "credential",
-                            color: "rgb(180, 180, 255)",
-                            credType: credential.type,
-                            credits: credential.credits,
-                            duration: credential.duration,
-                            cost: credential.cost,
-                            size: 15,
-                            x: columnX[2],
-                            y: credentialY,
-                            originalData: { ...credential },
-                            pathwayId: pathwayId,
-                            programId: programId
-                        };
-                        nodes.push(credentialNode);
-                        
-                        // Link credential to program
-                        links.push({
-                            source: programId,
-                            target: nodeId,
-                            value: 2,
-                            color: pathwayNode.color
-                        });
-                        
-                        const credentialId = nodeId;
-                        nodeId++;
-                        
-                        // Add career nodes (column 3) with improved spacing
-                        if (program.careers && program.careers[credential.id]) {
-                            const careersCount = program.careers[credential.id].length;
-                            const careerSpacing = 60; // Minimum space between careers
-                            const totalCareersHeight = careerSpacing * (careersCount - 1);
-                            
-                            // Calculate vertical span for careers
-                            const careersStartY = credentialY - totalCareersHeight / 2;
-                            
-                            program.careers[credential.id].forEach((career, careerIndex) => {
-                                const careerY = careersStartY + (careerSpacing * careerIndex);
-                                
-                                const careerNode = {
-                                    id: nodeId,
-                                    name: career.title,
-                                    type: "career",
-                                    color: "rgb(255, 255, 180)",
-                                    salary: career.salary,
-                                    outlook: career.outlook,
-                                    description: career.description,
-                                    size: 10,
-                                    x: columnX[3],
-                                    y: careerY,
-                                    originalData: { ...career },
-                                    pathwayId: pathwayId,
-                                    programId: programId,
-                                    credentialId: credentialId
-                                };
-                                nodes.push(careerNode);
-                                
-                                // Link career to credential
-                                links.push({
-                                    source: credentialId,
-                                    target: nodeId,
-                                    value: 1,
-                                    color: pathwayNode.color
-                                });
-                                
-                                nodeId++;
-                            });
-                        }
-                    });
-                });
-            });
-            
-            return { nodes, links };
-        }
+        // ------- DOM REFERENCES -------
+        const pathwayButtons = document.querySelectorAll('.pathway-button');
+        const programsList = document.getElementById('programs-list');
+        const programsPlaceholder = document.getElementById('programs-placeholder');
+        const credentialsList = document.getElementById('credentials-list');
+        const credentialsPlaceholder = document.getElementById('credentials-placeholder');
+        const careersList = document.getElementById('careers-list');
+        const careersPlaceholder = document.getElementById('careers-placeholder');
+        const detailsContent = document.getElementById('details-content');
+        const detailsPlaceholder = document.getElementById('details-placeholder');
+        const programDetails = document.getElementById('program-details');
+        const selectionPath = document.getElementById('selection-path');
 
-        // Initialize and render the network graph
-        function createNetworkGraph() {
-            const graphData = transformData();
-            
-            // Get container dimensions
-            const container = document.getElementById('graph-container');
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            
-            // Create SVG with zoom behavior
-            const svg = d3.select('#graph-container')
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height);
+        // ------- STATE MANAGEMENT -------
+        let currentState = {
+            pathway: null,
+            program: null,
+            credential: null,
+            career: null
+        };
+
+        // ------- EVENT HANDLERS -------
+        
+        // Pathway Selection
+        pathwayButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const pathwayId = button.dataset.pathway;
                 
-            // Add zoom behavior
-            const zoom = d3.zoom()
-                .scaleExtent([0.5, 3])
-                .on('zoom', zoomed);
+                // Update UI state
+                pathwayButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
                 
-            svg.call(zoom);
-            
-            // Group that will be transformed by zoom
-            const g = svg.append('g');
+                // Update selection state
+                currentState.pathway = pathwayId;
+                currentState.program = null;
+                currentState.credential = null;
+                currentState.career = null;
                 
-            // Define the glow filter
-            const defs = svg.append("defs");
-            
-            // Create glow filters for each pathway color
-            const colors = ["red", "blue", "green", "yellow", "purple"];
-            
-            colors.forEach((color) => {
-                const filter = defs.append("filter")
-                    .attr("id", `glow-${color}`)
-                    .attr("width", "300%")
-                    .attr("height", "300%")
-                    .attr("x", "-100%")
-                    .attr("y", "-100%");
+                // Update breadcrumb
+                updateSelectionPath();
                 
-                filter.append("feGaussianBlur")
-                    .attr("stdDeviation", "4")
-                    .attr("result", "blur");
+                // Display programs for this pathway
+                displayPrograms(pathwayId);
                 
-                filter.append("feFlood")
-                    .attr("flood-color", color)
-                    .attr("result", "color");
-                
-                filter.append("feComposite")
-                    .attr("in", "color")
-                    .attr("in2", "blur")
-                    .attr("operator", "in")
-                    .attr("result", "coloredBlur");
-                
-                const feMerge = filter.append("feMerge");
-                feMerge.append("feMergeNode")
-                    .attr("in", "coloredBlur");
-                feMerge.append("feMergeNode")
-                    .attr("in", "SourceGraphic");
+                // Reset other sections
+                resetCredentials();
+                resetCareers();
+                resetDetails();
             });
+        });
+
+        // ------- UI RENDERING FUNCTIONS -------
+        
+        // Display programs for selected pathway
+        function displayPrograms(pathwayId) {
+            const pathway = tccData.pathways[pathwayId];
             
-            // Create the links
-            const link = g.append("g")
-                .attr("class", "links")
-                .selectAll("line")
-                .data(graphData.links)
-                .enter()
-                .append("line")
-                .attr("x1", d => graphData.nodes.find(n => n.id === d.source).x)
-                .attr("y1", d => graphData.nodes.find(n => n.id === d.source).y)
-                .attr("x2", d => graphData.nodes.find(n => n.id === d.target).x)
-                .attr("y2", d => graphData.nodes.find(n => n.id === d.target).y)
-                .attr("stroke-width", d => d.value)
-                .attr("stroke", d => d.color)
-                .attr("stroke-opacity", 0)
-                .attr("class", d => {
-                    const source = typeof d.source === 'object' ? d.source.id : d.source;
-                    const target = typeof d.target === 'object' ? d.target.id : d.target;
-                    return `link link-${source}-${target}`;
-                })
-                .style("filter", d => {
-                    const colorName = d.color.includes("255, 100, 120") ? "red" : 
-                                      d.color.includes("100, 150, 255") ? "blue" : 
-                                      d.color.includes("100, 255, 150") ? "green" : 
-                                      d.color.includes("255, 220, 100") ? "yellow" : "purple";
-                    return `url(#glow-${colorName})`;
-                });
+            // Clear and hide placeholder
+            programsPlaceholder.classList.add('hidden');
+            programsList.innerHTML = '';
+            programsList.classList.remove('hidden');
             
-            // Create the nodes
-            const node = g.append("g")
-                .attr("class", "nodes")
-                .selectAll("circle")
-                .data(graphData.nodes)
-                .enter()
-                .append("circle")
-                .attr("r", d => d.size)
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y)
-                .attr("fill", d => d.color)
-                .attr("class", d => `node node-${d.id} node-${d.type}`)
-                .style("opacity", d => d.type === "pathway" ? 1 : 0) // Only show pathway nodes initially
-                .style("filter", d => {
-                    if (d.type === "pathway") {
-                        const colorName = d.color.includes("255, 100, 120") ? "red" : 
-                                          d.color.includes("100, 150, 255") ? "blue" : 
-                                          d.color.includes("100, 255, 150") ? "green" : 
-                                          d.color.includes("255, 220, 100") ? "yellow" : "purple";
-                        return `url(#glow-${colorName})`;
-                    }
-                    return null;
-                })
-                .attr("tabindex", d => d.type === "pathway" ? 0 : -1) // Make pathways keyboard focusable
-                .attr("role", "button")
-                .attr("aria-label", d => `${d.type}: ${d.name}`);
-            
-            // Add node labels with improved legibility
-            const nodeLabels = g.append("g")
-                .attr("class", "node-labels")
-                .selectAll("text")
-                .data(graphData.nodes)
-                .enter()
-                .append("text")
-                .attr("class", d => `node-label node-label-${d.id}`)
-                .text(d => d.name)
-                .attr("x", d => d.x)
-                .attr("y", d => {
-                    // Adjust label position based on node type
-                    switch(d.type) {
-                        case "pathway": return d.y + d.size + 15;
-                        case "program": return d.y + d.size + 12;
-                        case "credential": return d.y + d.size + 10;
-                        case "career": return d.y + d.size + 8;
-                        default: return d.y + d.size + 10;
-                    }
-                })
-                .attr("font-size", d => {
-                    switch(d.type) {
-                        case "pathway": return "16px";
-                        case "program": return "14px";
-                        case "credential": return "12px";
-                        case "career": return "11px";
-                    }
-                })
-                .attr("fill", "white")
-                .attr("text-anchor", "middle")
-                .style("opacity", d => d.type === "pathway" ? 1 : 0); // Only show pathway labels initially
-            
-            // Split long credential names into multiple lines for better readability
-            nodeLabels.each(function(d) {
-                if ((d.type === "credential" && d.name.length > 20) || 
-                    (d.type === "career" && d.name.length > 20)) {
-                    const text = d3.select(this);
-                    const words = d.name.split(/\s+/);
-                    const lineHeight = d.type === "credential" ? 14 : 12;
-                    text.text('');
+            // Create program buttons
+            Object.keys(pathway.programs).forEach(programId => {
+                const program = pathway.programs[programId];
+                
+                const programButton = document.createElement('div');
+                programButton.className = 'program-button p-3 mb-2 hover:bg-blue-50 rounded';
+                programButton.innerHTML = `
+                    <h3 class="font-semibold">${program.title}</h3>
+                    <p class="text-sm text-gray-600">${program.description}</p>
+                `;
+                
+                programButton.addEventListener('click', () => {
+                    // Update UI state
+                    document.querySelectorAll('.program-button').forEach(btn => btn.classList.remove('active'));
+                    programButton.classList.add('active');
                     
-                    let line = '';
-                    let lineNumber = 0;
+                    // Update selection state
+                    currentState.program = programId;
+                    currentState.credential = null;
+                    currentState.career = null;
                     
-                    for (let i = 0; i < words.length; i++) {
-                        const testLine = line + words[i] + ' ';
-                        if (testLine.length > 20) {
-                            text.append('tspan')
-                                .attr('x', d.x)
-                                .attr('y', d.y + d.size + 8 + (lineNumber * lineHeight))
-                                .text(line.trim());
-                            line = words[i] + ' ';
-                            lineNumber++;
-                        } else {
-                            line = testLine;
-                        }
-                    }
+                    // Update breadcrumb
+                    updateSelectionPath();
                     
-                    text.append('tspan')
-                        .attr('x', d.x)
-                        .attr('y', d.y + d.size + 8 + (lineNumber * lineHeight))
-                        .text(line.trim());
-                }
-            });
-            
-            // Zoom function
-            function zoomed(event) {
-                g.attr('transform', event.transform);
-            }
-            
-            // Enhanced tooltip functionality
-            node.on("mouseover", function(event, d) {
-                // Show tooltip with enhanced information
-                const tooltip = d3.select("#tooltip");
-                let tooltipContent = "";
-                
-                switch(d.type) {
-                    case "pathway":
-                        tooltipContent = `
-                            <h3 style="color: ${d.color}">${d.name}</h3>
-                            <p>${d.description}</p>
-                            <p>${d.originalData.programs.length} programs</p>
-                        `;
-                        break;
-                    case "program":
-                        tooltipContent = `
-                            <h3>${d.name}</h3>
-                            <p>${d.description}</p>
-                            <p>Campus: ${d.campus}</p>
-                        `;
-                        break;
-                    case "credential":
-                        tooltipContent = `
-                            <h3>${d.name}</h3>
-                            <p>${d.credType}</p>
-                            <p>${d.credits} credits | ${d.duration}</p>
-                            <p>${d.cost}</p>
-                        `;
-                        break;
-                    case "career":
-                        tooltipContent = `
-                            <h3>${d.name}</h3>
-                            <p>${d.description}</p>
-                            <p>Salary: ${d.salary}</p>
-                            <p>Outlook: ${d.outlook}</p>
-                        `;
-                        break;
-                }
-                
-                tooltip.html(tooltipContent)
-                    .style("left", (event.pageX + 15) + "px")
-                    .style("top", (event.pageY - 30) + "px")
-                    .style("opacity", 1);
-            })
-            .on("mouseout", function() {
-                // Hide tooltip
-                d3.select("#tooltip").style("opacity", 0);
-            })
-            .on("click", function(event, d) {
-                // Display details panel
-                showDetails(d);
-                
-                // Show the path relevant to this node
-                showPath(d);
-                
-                // Update current selection
-                currentSelection = d;
-                
-                // Make selected node tabbable
-                node.attr("tabindex", n => n.id === d.id ? 0 : -1);
-                
-                // Focus on selected node
-                this.focus();
-                
-                event.stopPropagation();
-            })
-            .on("keydown", function(event, d) {
-                // Handle keyboard navigation
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    // Trigger click event
-                    d3.select(this).dispatch("click");
-                }
-            });
-            
-            // Function to show only the path from pathway to selected node with improved user experience
-            function showPath(d) {
-                // Start by hiding all nodes and links
-                node.style("opacity", 0);
-                nodeLabels.style("opacity", 0);
-                link.style("stroke-opacity", 0);
-                
-                // Define nodes to show based on type
-                const nodesToShow = new Set();
-                
-                switch(d.type) {
-                    case "pathway":
-                        // Show pathway and its direct programs
-                        nodesToShow.add(d.id);
-                        // Find all programs connected to this pathway
-                        graphData.links.forEach(l => {
-                            const source = typeof l.source === 'object' ? l.source.id : l.source;
-                            const target = typeof l.target === 'object' ? l.target.id : l.target;
-                            if (source === d.id) {
-                                nodesToShow.add(target);
-                            }
-                        });
-                        break;
-                    case "program":
-                        // Show program, its pathway, and credentials
-                        nodesToShow.add(d.id);
-                        nodesToShow.add(d.pathwayId);
-                        // Find all credentials connected to this program
-                        graphData.links.forEach(l => {
-                            const source = typeof l.source === 'object' ? l.source.id : l.source;
-                            const target = typeof l.target === 'object' ? l.target.id : l.target;
-                            if (source === d.id) {
-                                nodesToShow.add(target);
-                            }
-                        });
-                        break;
-                    case "credential":
-                        // Show credential, its program, pathway, and careers
-                        nodesToShow.add(d.id);
-                        nodesToShow.add(d.programId);
-                        nodesToShow.add(d.pathwayId);
-                        // Find all careers connected to this credential
-                        graphData.links.forEach(l => {
-                            const source = typeof l.source === 'object' ? l.source.id : l.source;
-                            const target = typeof l.target === 'object' ? l.target.id : l.target;
-                            if (source === d.id) {
-                                nodesToShow.add(target);
-                            }
-                        });
-                        break;
-                    case "career":
-                        // Show career, credential, program, and pathway
-                        nodesToShow.add(d.id);
-                        nodesToShow.add(d.credentialId);
-                        nodesToShow.add(d.programId);
-                        nodesToShow.add(d.pathwayId);
-                        break;
-                }
-                
-                // Show relevant nodes with enhanced opacity
-                node.style("opacity", function(d) {
-                    return nodesToShow.has(d.id) ? 1 : 0;
+                    // Display credentials for this program
+                    displayCredentials(pathwayId, programId);
+                    
+                    // Reset subsequent sections
+                    resetCareers();
+                    resetDetails();
                 });
                 
-                // Show relevant labels with enhanced opacity
-                nodeLabels.style("opacity", function(d) {
-                    return nodesToShow.has(d.id) ? 1 : 0;
-                });
-                
-                // Show relevant links with enhanced visibility
-                link.style("stroke-opacity", function(l) {
-                    const source = typeof l.source === 'object' ? l.source.id : l.source;
-                    const target = typeof l.target === 'object' ? l.target.id : l.target;
-                    
-                    if (nodesToShow.has(source) && nodesToShow.has(target)) {
-                        return 0.6; // Increased opacity for better visibility
-                    }
-                    return 0;
-                });
-                
-                // Make nodes tabbable
-                node.attr("tabindex", function(n) {
-                    return nodesToShow.has(n.id) ? 0 : -1;
-                });
-                
-                // Apply high contrast mode if enabled
-                if (highContrastMode) {
-                    document.body.classList.add('high-contrast');
-                }
-                
-                // Center view on the selected node
-                centerViewOnNode(d);
-            }
-            
-            // Function to center the view on a node
-            function centerViewOnNode(d) {
-                const scale = 1.5; // Zoom level
-                const x = d.x;
-                const y = d.y;
-                
-                // Calculate transform to center on the node
-                const transform = d3.zoomIdentity
-                    .translate(width / 2 - scale * x, height / 2 - scale * y)
-                    .scale(scale);
-                
-                // Apply the transform with transition
-                svg.transition()
-                    .duration(750)
-                    .call(zoom.transform, transform);
-            }
-            
-            // Function to show details in the right panel
-            function showDetails(d) {
-                const detailsPanel = document.getElementById('details-panel');
-                let content = "";
-                
-                // Get the pathway color
-                let pathwayColor;
-                if (d.type === "pathway") {
-                    pathwayColor = d.color;
-                } else {
-                    const pathwayNode = graphData.nodes.find(n => n.id === d.pathwayId);
-                    pathwayColor = pathwayNode ? pathwayNode.color : "white";
-                }
-                
-                // Prepare content based on node type
-                switch(d.type) {
-                    case "pathway":
-                        content = `
-                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
-                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">${d.description}</p>
-                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
-                            
-                            <div class="detail-section">
-                                <h3>Available Programs</h3>
-                                <p>${d.originalData.programs.length} programs in this pathway</p>
-                            </div>
-                        `;
-                        
-                        d.originalData.programs.forEach(program => {
-                            content += `
-                                <div class="info-card">
-                                    <h4>${program.name}</h4>
-                                    <p>${program.description}</p>
-                                </div>
-                            `;
-                        });
-                        
-                        // Define pathway-specific URLs
-                        let pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/";
-                        switch(d.name) {
-                            case "Arts & Humanities":
-                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/visual-arts/";
-                                break;
-                            case "Business & Industry":
-                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/";
-                                break;
-                            case "Health Science":
-                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/nursing/";
-                                break;
-                            case "Human & Public Service":
-                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/";
-                                break;
-                            case "STEM":
-                                pathwayUrl = "https://www.tccd.edu/academics/courses-and-programs/programs-a-z/credit/info-tech-cybersecurity/";
-                                break;
-                        }
-                        
-                        content += `
-                            <a href="${pathwayUrl}" target="_blank" class="action-btn" style="background: ${pathwayColor}; text-decoration: none; display: inline-block; text-align: center;">
-                                Learn More
-                            </a>
-                        `;
-                        break;
-                    case "program":
-                        content = `
-                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
-                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">${d.description}</p>
-                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
-                            
-                            <div class="detail-section">
-                                <h3>Program Details</h3>
-                                <div class="info-card">
-                                    <p><strong>Campus:</strong> ${d.campus}</p>
-                                    <p><strong>Pathway:</strong> ${graphData.nodes.find(n => n.id === d.pathwayId).name}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="detail-section">
-                                <h3>Available Credentials</h3>
-                            `;
-                            
-                            d.originalData.credentials.forEach(cred => {
-                                content += `
-                                    <div class="info-card">
-                                        <h4>${cred.name}</h4>
-                                        <p>${cred.type}</p>
-                                        <p>${cred.credits} credits | ${cred.duration} | ${cred.cost}</p>
-                                    </div>
-                                `;
-                            });
-                            
-                        content += `
-                            </div>
-                            
-                            <button class="action-btn" style="background: ${pathwayColor};">
-                                Program Details
-                            </button>
-                        `;
-                        break;
-                    case "credential":
-                        const careers = [];
-                        if (d.originalData.id) {
-                            const program = graphData.nodes.find(n => n.id === d.programId).originalData;
-                            if (program.careers && program.careers[d.originalData.id]) {
-                                careers.push(...program.careers[d.originalData.id]);
-                            }
-                        }
-                        
-                        content = `
-                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
-                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">${d.credType}</p>
-                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
-                            
-                            <div class="detail-section">
-                                <h3>Credential Details</h3>
-                                <div class="info-card">
-                                    <p><strong>Credits:</strong> ${d.credits}</p>
-                                    <p><strong>Duration:</strong> ${d.duration}</p>
-                                    <p><strong>Cost:</strong> ${d.cost}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="detail-section">
-                                <h3>Program Information</h3>
-                                <p><strong>Program:</strong> ${graphData.nodes.find(n => n.id === d.programId).name}</p>
-                                <p><strong>Pathway:</strong> ${graphData.nodes.find(n => n.id === d.pathwayId).name}</p>
-                            </div>
-                        `;
-                        
-                        if (careers.length > 0) {
-                            content += `
-                                <div class="detail-section">
-                                    <h3>Career Opportunities</h3>
-                            `;
-                            
-                            careers.forEach(career => {
-                                content += `
-                                    <div class="career-item">
-                                        <div>
-                                            <h4>${career.title}</h4>
-                                            <p style="font-size: 12px; opacity: 0.8;">${career.outlook}</p>
-                                        </div>
-                                        <div style="color: #5cffbc; font-weight: bold;">
-                                            ${career.salary}
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                            
-                            content += `</div>`;
-                        }
-                        
-                        content += `
-                            <button class="action-btn" style="background: ${pathwayColor};">
-                                Apply Now
-                            </button>
-                        `;
-                        break;
-                    case "career":
-                        content = `
-                            <h2 style="color: ${pathwayColor}; text-align: center;">${d.name}</h2>
-                            <p style="text-align: center; font-size: 14px; opacity: 0.8;">Career Opportunity</p>
-                            <hr style="border-color: ${pathwayColor}; opacity: 0.5; margin: 15px 0;">
-                            
-                            <div class="detail-section">
-                                <h3>Career Overview</h3>
-                                <p>${d.description}</p>
-                            </div>
-                            
-                            <div class="detail-section">
-                                <h3>Salary & Outlook</h3>
-                                <div class="info-card">
-                                    <p><strong>Median Salary:</strong> <span style="color: #5cffbc; font-weight: bold; font-size: 18px;">${d.salary}</span></p>
-                                    <p><strong>Job Outlook:</strong> ${d.outlook}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="detail-section">
-                                <h3>Required Education</h3>
-                                <p><strong>Credential:</strong> ${graphData.nodes.find(n => n.id === d.credentialId).name}</p>
-                                <p><strong>Program:</strong> ${graphData.nodes.find(n => n.id === d.programId).name}</p>
-                                <p><strong>Pathway:</strong> ${graphData.nodes.find(n => n.id === d.pathwayId).name}</p>
-                            </div>
-                            
-                            <button class="action-btn" style="background: ${pathwayColor};">
-                                Explore Job Listings
-                            </button>
-                        `;
-                        break;
-                }
-                
-                detailsPanel.innerHTML = content;
-                detailsPanel.className = "active";
-            }
-            
-            // Reset view button event handler
-            document.getElementById('reset-btn').addEventListener('click', function() {
-                // Hide details panel
-                document.getElementById('details-panel').className = "";
-                
-                // Reset to initial state - only show pathway nodes
-                node.style("opacity", d => d.type === "pathway" ? 1 : 0);
-                nodeLabels.style("opacity", d => d.type === "pathway" ? 1 : 0);
-                link.style("stroke-opacity", 0);
-                
-                // Reset zoom
-                svg.transition()
-                    .duration(750)
-                    .call(zoom.transform, d3.zoomIdentity);
-                
-                // Make pathway nodes tabbable
-                node.attr("tabindex", d => d.type === "pathway" ? 0 : -1);
-                
-                currentSelection = null;
+                programsList.appendChild(programButton);
             });
             
-            // Legend toggle event handler
-            document.getElementById('legend-toggle').addEventListener('click', function() {
-                const legend = document.getElementById('legend');
-                legendVisible = !legendVisible;
-                legend.classList.toggle('hidden', !legendVisible);
-                this.textContent = legendVisible ? "Hide Legend" : "Show Legend";
-            });
-            
-            // High contrast toggle event handler
-            document.getElementById('contrast-toggle').addEventListener('click', function() {
-                highContrastMode = !highContrastMode;
-                document.body.classList.toggle('high-contrast', highContrastMode);
-                this.title = highContrastMode ? "Disable High Contrast" : "Enable High Contrast";
-            });
-            
-            // Zoom control event handlers
-            document.getElementById('zoom-in').addEventListener('click', function() {
-                svg.transition()
-                    .duration(300)
-                    .call(zoom.scaleBy, 1.3);
-            });
-            
-            document.getElementById('zoom-out').addEventListener('click', function() {
-                svg.transition()
-                    .duration(300)
-                    .call(zoom.scaleBy, 0.7);
-            });
-            
-            document.getElementById('zoom-reset').addEventListener('click', function() {
-                if (currentSelection) {
-                    // Center on current selection if exists
-                    centerViewOnNode(currentSelection);
-                } else {
-                    // Reset to default view
-                    svg.transition()
-                        .duration(750)
-                        .call(zoom.transform, d3.zoomIdentity);
-                }
-            });
-            
-            // Add click event listener to graph container for deselection
-            container.addEventListener('click', function(event) {
-                // Only deselect if clicking on the background (not on nodes)
-                if (event.target === svg.node() || event.target === g.node()) {
-                    // Hide details panel
-                    document.getElementById('details-panel').className = "";
-                    
-                    // Reset to initial state - only show pathway nodes
-                    node.style("opacity", d => d.type === "pathway" ? 1 : 0);
-                    nodeLabels.style("opacity", d => d.type === "pathway" ? 1 : 0);
-                    link.style("stroke-opacity", 0);
-                    
-                    // Reset to default view
-                    svg.transition()
-                        .duration(750)
-                        .call(zoom.transform, d3.zoomIdentity);
-                    
-                    // Make pathway nodes tabbable
-                    node.attr("tabindex", d => d.type === "pathway" ? 0 : -1);
-                    
-                    currentSelection = null;
-                }
-            });
-            
-            // Keyboard navigation handler
-            document.addEventListener('keydown', function(event) {
-                // Escape key - reset view
-                if (event.key === "Escape") {
-                    document.getElementById('reset-btn').click();
-                }
-            });
-            
-            // Focus indicator for keyboard navigation
-            document.addEventListener('keydown', function(event) {
-                if (event.key === "Tab") {
-                    document.body.classList.add('keyboard-navigation');
-                }
-            });
-            
-            document.addEventListener('mousedown', function() {
-                document.body.classList.remove('keyboard-navigation');
-            });
-            
-            // Remove loading indicator
-            document.getElementById('loading').style.display = 'none';
+            // Add animation
+            programsList.classList.add('fade-in');
         }
         
-        // Initialize the visualization when the page loads
-        window.addEventListener('load', function() {
-            // Load D3.js dynamically if not already loaded
-            if (typeof d3 === 'undefined') {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
-                script.onload = function() {
-                    setTimeout(createNetworkGraph, 500);
-                };
-                document.head.appendChild(script);
+        // Display credentials for selected program
+        function displayCredentials(pathwayId, programId) {
+            const program = tccData.pathways[pathwayId].programs[programId];
+            
+            // Clear and hide placeholder
+            credentialsPlaceholder.classList.add('hidden');
+            credentialsList.innerHTML = '';
+            credentialsList.classList.remove('hidden');
+            
+            if (!program.credentials || Object.keys(program.credentials).length === 0) {
+                // Handle case with no credentials
+                const noCredentials = document.createElement('div');
+                noCredentials.className = 'bg-gray-100 p-4 rounded text-center';
+                noCredentials.innerHTML = '<p class="text-gray-700">No Certifications Available</p>';
+                credentialsList.appendChild(noCredentials);
+                
+                // In this case, show careers directly
+                displayCareers(pathwayId, programId, null);
             } else {
-                setTimeout(createNetworkGraph, 500);
+                // Create credential buttons
+                Object.keys(program.credentials).forEach(credentialId => {
+                    const credential = program.credentials[credentialId];
+                    
+                    const credentialButton = document.createElement('div');
+                    credentialButton.className = 'credential-button bg-white p-4 rounded shadow-sm border-l-4 border-blue-400 hover:border-blue-600';
+                    credentialButton.innerHTML = `
+                        <h4 class="font-semibold">${credential.title}</h4>
+                        <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
+                            <div><i class="fas fa-clock text-gray-500 mr-1"></i> ${credential.duration}</div>
+                            <div><i class="fas fa-graduation-cap text-gray-500 mr-1"></i> ${credential.credits} credits</div>
+                            <div><i class="fas fa-dollar-sign text-gray-500 mr-1"></i> ${credential.cost}</div>
+                        </div>
+                    `;
+                    
+                    credentialButton.addEventListener('click', () => {
+                        // Update UI state
+                        document.querySelectorAll('.credential-button').forEach(btn => btn.classList.remove('active'));
+                        credentialButton.classList.add('active');
+                        
+                        // Update selection state
+                        currentState.credential = credentialId;
+                        currentState.career = null;
+                        
+                        // Update breadcrumb
+                        updateSelectionPath();
+                        
+                        // Display careers for this credential
+                        displayCareers(pathwayId, programId, credentialId);
+                        
+                        // Reset details
+                        resetDetails();
+                    });
+                    
+                    credentialsList.appendChild(credentialButton);
+                });
             }
-        });
+            
+            // Add animation
+            credentialsList.classList.add('fade-in');
+        }
+        
+        // Display careers for selected credential
+        function displayCareers(pathwayId, programId, credentialId) {
+            const program = tccData.pathways[pathwayId].programs[programId];
+            
+            // Clear and hide placeholder
+            careersPlaceholder.classList.add('hidden');
+            careersList.innerHTML = '';
+            careersList.classList.remove('hidden');
+            
+            // Create career items
+            Object.keys(program.careers).forEach(careerId => {
+                const career = program.careers[careerId];
+                
+                const careerItem = document.createElement('div');
+                careerItem.className = 'career-item bg-white p-4 rounded shadow-sm border-l-4 border-green-400';
+                careerItem.innerHTML = `
+                    <h4 class="font-semibold">${career.title}</h4>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="font-bold text-green-700">${career.salary}/year</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${career.outlook}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">${career.requirements}</p>
+                `;
+                
+                careerItem.addEventListener('click', () => {
+                    // Update UI state for visual feedback
+                    document.querySelectorAll('.career-item').forEach(item => {
+                        item.classList.remove('border-green-600', 'bg-green-50');
+                        item.classList.add('border-green-400');
+                    });
+                    careerItem.classList.remove('border-green-400');
+                    careerItem.classList.add('border-green-600', 'bg-green-50');
+                    
+                    // Update selection state
+                    currentState.career = careerId;
+                    
+                    // Update breadcrumb
+                    updateSelectionPath();
+                    
+                    // Display details for this career
+                    displayDetails(pathwayId, programId, credentialId, careerId);
+                });
+                
+                careersList.appendChild(careerItem);
+            });
+            
+            // Add animation
+            careersList.classList.add('fade-in');
+        }
+        
+        // Display details for selected career and program
+        function displayDetails(pathwayId, programId, credentialId, careerId) {
+            const pathway = tccData.pathways[pathwayId];
+            const program = pathway.programs[programId];
+            const career = program.careers[careerId];
+            
+            // Hide placeholder and show content
+            detailsPlaceholder.classList.add('hidden');
+            detailsContent.classList.remove('hidden');
+            
+            // Populate program details
+            programDetails.innerHTML = `
+                <h3 class="font-bold text-lg mb-3">${program.title}</h3>
+                <div class="mb-4">
+                    <h4 class="font-semibold">Career: ${career.title}</h4>
+                    <p class="text-sm text-gray-700 mt-1">${career.description}</p>
+                    <div class="bg-gray-100 p-3 rounded mt-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-700">Median Salary:</span>
+                            <span class="font-bold">${career.salary}</span>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-gray-700">Job Outlook:</span>
+                            <span>${career.outlook}</span>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-gray-700">Requirements:</span>
+                            <span>${career.requirements}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h4 class="font-semibold">Program Information</h4>
+                    <div class="bg-gray-100 p-3 rounded mt-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-700">Campus:</span>
+                            <span>${program.campus}</span>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-gray-700">Next Start Date:</span>
+                            <span>Fall & Spring</span>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-gray-700">Program URL:</span>
+                            <a href="${program.url}" target="_blank" class="text-blue-600 hover:underline">View Program Details</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add animation
+            detailsContent.classList.add('fade-in');
+        }
+        
+        // Update breadcrumb selection path
+        function updateSelectionPath() {
+            let pathHTML = '<span class="text-gray-500">Your selection: </span>';
+            
+            if (currentState.pathway) {
+                const pathway = tccData.pathways[currentState.pathway];
+                pathHTML += `<span class="mx-2 px-2 py-1 bg-${currentState.pathway === 'arts' ? 'purple' : currentState.pathway === 'business' ? 'blue' : currentState.pathway === 'health' ? 'green' : currentState.pathway === 'human' ? 'orange' : 'pink'}-100 rounded">${pathway.title}</span>`;
+                
+                if (currentState.program) {
+                    pathHTML += '<span class="mx-1">→</span>';
+                    const program = pathway.programs[currentState.program];
+                    pathHTML += `<span class="mx-1 px-2 py-1 bg-gray-100 rounded">${program.title}</span>`;
+                    
+                    if (currentState.credential) {
+                        pathHTML += '<span class="mx-1">→</span>';
+                        const credential = program.credentials[currentState.credential];
+                        pathHTML += `<span class="mx-1 px-2 py-1 bg-gray-100 rounded">${credential.title}</span>`;
+                    }
+                    
+                    if (currentState.career) {
+                        pathHTML += '<span class="mx-1">→</span>';
+                        const career = program.careers[currentState.career];
+                        pathHTML += `<span class="mx-1 px-2 py-1 bg-gray-100 rounded">${career.title}</span>`;
+                    }
+                }
+            } else {
+                pathHTML += '<span class="text-gray-400 mx-2">Select a pathway to begin</span>';
+            }
+            
+            selectionPath.innerHTML = pathHTML;
+        }
+        
+        // Reset functions for each section
+        function resetCredentials() {
+            credentialsPlaceholder.classList.remove('hidden');
+            credentialsList.classList.add('hidden');
+            credentialsList.innerHTML = '';
+        }
+        
+        function resetCareers() {
+            careersPlaceholder.classList.remove('hidden');
+            careersList.classList.add('hidden');
+            careersList.innerHTML = '';
+        }
+        
+        function resetDetails() {
+            detailsPlaceholder.classList.remove('hidden');
+            detailsContent.classList.add('hidden');
+            programDetails.innerHTML = '';
+        }
     </script>
 </body>
 </html>
